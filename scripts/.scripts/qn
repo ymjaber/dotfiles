@@ -1,0 +1,257 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+NOTES_DIR="${QUICK_NOTES_DIR:-$HOME/notes/quick-notes}"
+EDITOR_BIN="${EDITOR:-nvim}"
+EXT="${QN_EXT:-md}"
+
+mkdir -p "$NOTES_DIR"
+
+today_dir() { date "+%Y-%m-%d"; }
+stamp()     { date "+%H-%M-%S_%3N"; } # ms to avoid collisions
+
+slugify() {
+  printf "%s" "$*" \
+  | tr '[:upper:]' '[:lower:]' \
+  | sed -E 's/[[:space:]]+/-/g; s/[^a-z0-9._-]+//g; s/^-+|-+$//g' \
+  | cut -c1-60
+}
+
+note_path() {
+  local text="${1:-}"
+  local d="$NOTES_DIR/$(today_dir)"
+  mkdir -p "$d"
+
+  local s t
+  t="$(stamp)"
+
+  if [[ -n "$text" ]]; then
+    s="$(slugify "$text")"
+    if [[ -n "$s" ]]; then
+      printf "%s/%s__%s.%s" "$d" "$t" "$s" "$EXT"
+      return
+    fi
+  fi
+
+  printf "%s/%s.%s" "$d" "$t" "$EXT"
+}
+
+need() {
+  command -v "$1" >/dev/null 2>&1 || { echo "qn: missing dependency: $1" >&2; exit 1; }
+}
+
+# -------- Pickers --------
+
+# Picker that returns a FILE (search by content using rg --files-with-matches)
+pick_file_by_content() {
+  need rg; need fzf; need bat
+
+  local dir="$NOTES_DIR"
+  local initial="${1:-}"
+
+  # Safe reload: query passed as "$1" so spaces work
+  local reload_cmd
+  reload_cmd="bash -lc 'rg --files-with-matches --smart-case --hidden --glob \"!.git/*\" -- \"\$1\" \"\$2\" 2>/dev/null || true' _ \"{q}\" \"$dir\""
+
+  # Safe preview: handle empty selection
+  local preview_cmd
+  preview_cmd=$'bash -lc \'\n\
+q="$1"; f="$2";\n\
+[[ -z "$f" ]] && exit 0\n\
+if [[ -z "${q// }" ]]; then\n\
+  bat --style=numbers --color=always --line-range :400 "$f"\n\
+else\n\
+  rg --smart-case --color=always --line-number --hidden --glob "!.git/*" --context 3 -- "$q" "$f" | head -400\n\
+fi\n\
+\' _ "{q}" "{}"'
+
+  ( cd "$dir" && \
+    fzf --ansi --phony --query "$initial" \
+        --prompt "notes> " \
+        --height 85% --layout=reverse --border \
+        --bind "change:reload:$reload_cmd" \
+        --preview "$preview_cmd" \
+        --preview-window=right:60%:wrap \
+        --header $'Enter=open  Ctrl-R=read  Ctrl-D=delete  Ctrl-N=new note\n' \
+        --bind "ctrl-n:abort" \
+        --bind "ctrl-r:execute:bash -lc 'bat --style=numbers --color=always \"\$1\" | less -R' _ {} < /dev/tty" \
+        --bind "ctrl-d:execute-silent:bash -lc '\
+f=\"\$1\"; \
+[[ -z \"\$f\" ]] && exit 0; \
+printf \"Delete: %s\\n\" \"\$f\" > /dev/tty; \
+printf \"[y/N] \" > /dev/tty; \
+read -r -n 1 ans < /dev/tty; \
+printf \"\\n\" > /dev/tty; \
+[[ \"\$ans\" =~ [Yy] ]] && rm -f -- \"\$f\" \
+' _ {} && reload:$reload_cmd"
+  )
+}
+
+
+# Live "match" picker (returns file + line) for deep search
+pick_match() {
+  need rg; need fzf; need bat
+
+  local dir="$NOTES_DIR"
+  local initial="${1:-}"
+
+  # No ANSI in rg results -> clean file/line parsing
+  local rg_cmd
+  rg_cmd="bash -lc 'rg --column --line-number --no-heading --smart-case --hidden --glob \"!.git/*\" -- \"\$1\" \"\$2\" 2>/dev/null || true' _ \"{q}\" \"$dir\""
+
+  # Safe preview: only highlight if line is a number
+  local preview_cmd
+  preview_cmd=$'bash -lc \'\n\
+file="$1"; line="$2";\n\
+[[ -z "$file" ]] && exit 0\n\
+if [[ "$line" =~ ^[0-9]+$ ]]; then\n\
+  start=$(( line>200 ? line-200 : 1 )); end=$(( line+200 ));\n\
+  bat --style=numbers --color=always --highlight-line "$line" --line-range "${start}:${end}" "$file"\n\
+else\n\
+  bat --style=numbers --color=always --line-range :400 "$file"\n\
+fi\n\
+\' _ "{1}" "{2}"'
+
+  local sel
+  sel="$(
+    fzf --ansi --phony --query "$initial" \
+        --prompt "grep> " \
+        --height 85% --layout=reverse --border \
+        --bind "change:reload:$rg_cmd" \
+        --delimiter : \
+        --preview "$preview_cmd" \
+        --preview-window=right:60%:wrap \
+        --header $'Enter=open at match  Ctrl-R=read file  Ctrl-D=delete file\n' \
+        --bind "ctrl-r:execute:bash -lc 'bat --style=numbers --color=always \"\$1\" | less -R' _ {1} < /dev/tty" \
+        --bind "ctrl-d:execute-silent:bash -lc '\
+f=\"\$1\"; \
+[[ -z \"\$f\" ]] && exit 0; \
+printf \"Delete: %s\\n\" \"\$f\" > /dev/tty; \
+printf \"[y/N] \" > /dev/tty; \
+read -r -n 1 ans < /dev/tty; \
+printf \"\\n\" > /dev/tty; \
+[[ \"\$ans\" =~ [Yy] ]] && rm -f -- \"\$f\" \
+' _ {1} && reload:$rg_cmd"
+  )" || return 1
+
+  printf "%s\n" "$sel"
+}
+
+
+# -------- Commands --------
+
+cmd_new() {
+  local p; p="$(note_path)"
+  "$EDITOR_BIN" "$p"
+  echo "$p"
+}
+
+cmd_add() {
+  local text="${1:-}"; shift || true
+
+  if [[ "$text" == "-" ]]; then
+    text="$(cat)"
+  elif [[ -n "${text}" || $# -gt 0 ]]; then
+    text="$text ${*:-}"
+    text="${text# }"
+  fi
+
+  if [[ -z "${text// }" ]]; then
+    cmd_new
+    return
+  fi
+
+  local p; p="$(note_path "$text")"
+  {
+    echo "# $(date '+%Y-%m-%d %H:%M:%S')"
+    echo
+    echo "$text"
+    echo
+  } > "$p"
+  echo "$p"
+}
+
+cmd_open() {
+  local f
+  f="$(pick_file_by_content "${*:-}")" || exit 0
+  if [[ "$f" == "" ]]; then exit 0; fi
+  if [[ "$f" == $'\x1b' ]]; then exit 0; fi
+  "$EDITOR_BIN" "$f"
+}
+
+cmd_read() {
+  need bat
+  local f
+  f="$(pick_file_by_content "${*:-}")" || exit 0
+  [[ -z "$f" ]] && exit 0
+  bat --style=numbers --color=always "$f"
+}
+
+cmd_rm() {
+  local f
+  f="$(pick_file_by_content "${*:-}")" || exit 0
+  [[ -z "$f" ]] && exit 0
+  printf "Delete: %s\n" "$f"
+  printf "[y/N] "
+  read -r -n 1 ans < /dev/tty
+  printf "\n"
+  [[ "${ans:-}" =~ [Yy] ]] && rm -f -- "$f" && echo "Deleted." || echo "Canceled."
+}
+
+cmd_search() {
+  local sel
+  sel="$(pick_match "${*:-}")" || exit 0
+  local file line
+  file="$(printf "%s" "$sel" | cut -d: -f1)"
+  line="$(printf "%s" "$sel" | cut -d: -f2)"
+  "$EDITOR_BIN" +"$line" "$file"
+}
+
+cmd_ls() {
+  need fd
+  # show newest notes across all date folders
+  fd -t f -e "$EXT" . "$NOTES_DIR" \
+    -x stat -c '%Y %n' {} \; 2>/dev/null \
+  | sort -nr \
+  | cut -d' ' -f2- \
+  | sed "s|^$HOME|~|"
+}
+
+usage() {
+  cat <<'USAGE'
+qn — quick notes in ~/notes/quick-notes (or $QUICK_NOTES_DIR), organized by date folders.
+
+Examples:
+  qn                      # new note in today's folder (timestamp) in $EDITOR
+  qn "Hello world"        # quick add (creates a file with that content)
+  echo "multi\nline" | qn add -   # add from stdin
+
+  qn search               # live ripgrep + fzf, open at matching line
+  qn open                 # pick a file by content query, open in editor
+  qn read                 # pick a file by content query, print with bat
+  qn rm                   # pick a file by content query, delete (single-key y/n)
+
+Subcommands:
+  new | add | ls | open | read | rm | search | help
+USAGE
+}
+
+main() {
+  local cmd="${1:-}"
+
+  case "$cmd" in
+    "" ) cmd_new ;;
+    help|-h|--help ) usage ;;
+    new ) shift; cmd_new ;;
+    add ) shift; cmd_add "${1:-}" "${@:2}" ;;
+    ls ) shift; cmd_ls ;;
+    open|edit ) shift; cmd_open "$@" ;;
+    read|cat ) shift; cmd_read "$@" ;;
+    rm|del|delete ) shift; cmd_rm "$@" ;;
+    search|rg|grep ) shift; cmd_search "$@" ;;
+    * ) cmd_add "$cmd" "${@:2}" ;; # default: treat args as quick note text
+  esac
+}
+
+main "$@"
+

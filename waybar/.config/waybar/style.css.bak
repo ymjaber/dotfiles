@@ -1,0 +1,153 @@
+/* Import wallust generated colors */
+@import "colors.css";
+
+/* Catppuccin-compatible color mappings */
+@define-color base   @background;
+@define-color mantle @color0;
+@define-color crust  @color8;
+
+@define-color text     @foreground;
+@define-color subtext0 @color7;
+@define-color subtext1 @color15;
+
+@define-color surface0 @color0;
+@define-color surface1 @color8;
+@define-color surface2 @color8;
+
+@define-color overlay0 @color8;
+@define-color overlay1 @color7;
+@define-color overlay2 @color7;
+
+@define-color lavender @color5;
+@define-color blue     @color4;
+@define-color sapphire @color6;
+@define-color sky      @color14;
+@define-color teal     @color6;
+@define-color green    @color2;
+@define-color yellow   @color3;
+@define-color peach    @color11;
+@define-color maroon   @color9;
+@define-color red      @color1;
+@define-color mauve    @color13;
+@define-color pink     @color5;
+@define-color flamingo @color13;
+@define-color rosewater @color15;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: @text;
+}
+
+tooltip {
+    background: @base;
+    border: 1px solid @lavender;
+}
+
+#workspaces button {
+    padding: 5px;
+    color: @overlay0;
+    margin-right: 5px;
+}
+
+#workspaces button.active {
+    color: @lavender;
+}
+
+#workspaces button.focused {
+    color: @lavender;
+    background: @surface0;
+    border-radius: 10px;
+}
+
+#workspaces button.urgent {
+    color: @red;
+}
+
+#workspaces button:hover {
+    background: @surface0;
+    color: @text;
+}
+
+#language,
+#clock,
+#battery,
+#pulseaudio,
+#network,
+#tray,
+#window,
+#backlight {
+    background: @surface0;
+    padding: 0px 10px;
+    margin: 3px 0px;
+    margin-top: 10px;
+    border: 1px solid @base;
+}
+
+#tray {
+    border-radius: 10px;
+    margin-right: 10px;
+}
+
+#workspaces {
+    background: @surface0;
+    margin: 3px 0px;
+    margin-top: 10px;
+    border-radius: 10px;
+    margin-left: 10px;
+    padding-right: 0px;
+    padding-left: 5px;
+}
+
+#window {
+    border-radius: 10px;
+    margin-left: 60px;
+    margin-right: 60px;
+}
+
+#clock {
+    color: @blue;
+    border-radius: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#network {
+    color: @flamingo;
+    border-radius: 10px 0px 0px 10px;
+}
+
+#pulseaudio {
+    color: @pink;
+}
+
+#battery {
+    color: @green;
+}
+
+#battery.charging {
+    color: @green;
+}
+
+#battery.warning:not(.charging) {
+    color: @yellow;
+}
+
+#battery.critical:not(.charging) {
+    color: @red;
+}
+
+#backlight {
+    color: @yellow;
+}
+
+#language {
+    color: @mauve;
+    border-radius: 0px 10px 10px 0px;
+    margin-right: 10px;
+}

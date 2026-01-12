@@ -1,0 +1,1 @@
+alias sthypr='start-hyprland'

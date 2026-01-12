@@ -1,0 +1,312 @@
+/* Import wallust generated colors */
+@import "colors.css";
+
+/* Catppuccin-compatible color mappings */
+@define-color base   @background;
+@define-color mantle @color0;
+@define-color crust  @color8;
+
+@define-color text     @foreground;
+@define-color subtext0 @color7;
+@define-color subtext1 @color15;
+
+@define-color surface0 @color0;
+@define-color surface1 @color8;
+@define-color surface2 @color8;
+
+@define-color overlay0 @color8;
+@define-color overlay1 @color7;
+@define-color overlay2 @color7;
+
+@define-color lavender @color5;
+@define-color blue     @color4;
+@define-color sapphire @color6;
+@define-color sky      @color14;
+@define-color teal     @color6;
+@define-color green    @color2;
+@define-color yellow   @color3;
+@define-color peach    @color11;
+@define-color maroon   @color9;
+@define-color red      @color1;
+@define-color mauve    @color13;
+@define-color pink     @color5;
+@define-color flamingo @color13;
+@define-color rosewater @color15;
+
+* {
+    font-family: "JetBrainsMono Nerd Font", "Symbols Nerd Font";
+    font-size: 12px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: alpha(@background, 0.7);
+    border-bottom: 3px solid alpha(@lavender, 0.5);
+    color: @text;
+    transition-property: background-color;
+    transition-duration: 0.5s;
+}
+
+window#waybar.hidden {
+    opacity: 0.2;
+}
+
+tooltip {
+    background: @base;
+    border: 1px solid @lavender;
+    border-radius: 10px;
+}
+
+tooltip label {
+    color: @text;
+}
+
+/* Workspaces */
+#workspaces {
+    background: transparent;
+    margin: 5px 5px 5px 10px;
+    padding: 0px 5px;
+}
+
+#workspaces button {
+    padding: 5px 10px;
+    color: @text;
+    background: transparent;
+    box-shadow: none;
+    border: none;
+    border-radius: 10px;
+    margin: 0 3px;
+    font-weight: bold;
+}
+
+#workspaces button:hover {
+    background: alpha(@lavender, 0.3);
+    color: @lavender;
+}
+
+#workspaces button.active {
+    color: @base;
+    background: @lavender;
+    font-weight: bold;
+}
+
+#workspaces button.urgent {
+    background-color: @red;
+    color: @base;
+}
+
+/* Mode indicator */
+#submap {
+    background: @red;
+    color: @base;
+    padding: 0 10px;
+    margin: 5px;
+    border-radius: 15px;
+    font-weight: bold;
+}
+
+/* Window title */
+#custom-window {
+    margin: 5px;
+    padding: 0 10px;
+    background: transparent;
+    color: @text;
+    font-weight: 500;
+}
+
+window#waybar.empty #custom-window {
+    background: transparent;
+}
+
+/* All modules common styling */
+#clock,
+#battery,
+#cpu,
+#memory,
+#temperature,
+#backlight,
+#network,
+#pulseaudio,
+#tray,
+#language,
+#bluetooth,
+#custom-power,
+#custom-notification {
+    padding: 0 10px;
+    margin: 5px 3px;
+    background: alpha(@surface0, 0.8);
+    color: @text;
+    border-radius: 15px;
+    border: 2px solid transparent;
+}
+
+/* Individual module colors and icons */
+#clock {
+    background: alpha(@blue, 0.2);
+    color: @blue;
+    border-color: alpha(@blue, 0.5);
+    font-weight: bold;
+}
+
+#battery {
+    background: alpha(@green, 0.2);
+    color: @green;
+    border-color: alpha(@green, 0.5);
+}
+
+#battery.charging,
+#battery.plugged {
+    background: alpha(@green, 0.3);
+}
+
+@keyframes blink {
+    to {
+        background-color: alpha(@red, 0.3);
+        color: @red;
+    }
+}
+
+#battery.critical:not(.charging) {
+    background: alpha(@red, 0.2);
+    color: @red;
+    border-color: alpha(@red, 0.5);
+    animation-name: blink;
+    animation-duration: 0.5s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+}
+
+#cpu {
+    background: alpha(@yellow, 0.2);
+    color: @yellow;
+    border-color: alpha(@yellow, 0.5);
+}
+
+#memory {
+    background: alpha(@mauve, 0.2);
+    color: @mauve;
+    border-color: alpha(@mauve, 0.5);
+}
+
+#temperature {
+    background: alpha(@peach, 0.2);
+    color: @peach;
+    border-color: alpha(@peach, 0.5);
+}
+
+#temperature.critical {
+    background: alpha(@red, 0.2);
+    color: @red;
+    border-color: alpha(@red, 0.5);
+}
+
+#backlight {
+    background: alpha(@yellow, 0.2);
+    color: @yellow;
+    border-color: alpha(@yellow, 0.5);
+}
+
+#network {
+    background: alpha(@flamingo, 0.2);
+    color: @flamingo;
+    border-color: alpha(@flamingo, 0.5);
+}
+
+#network.disconnected {
+    background: alpha(@red, 0.2);
+    color: @red;
+    border-color: alpha(@red, 0.5);
+}
+
+#pulseaudio {
+    background: alpha(@pink, 0.2);
+    color: @pink;
+    border-color: alpha(@pink, 0.5);
+}
+
+#pulseaudio.muted {
+    background: alpha(@red, 0.2);
+    color: @red;
+    border-color: alpha(@red, 0.5);
+}
+
+#language {
+    background: alpha(@mauve, 0.2);
+    color: @mauve;
+    border-color: alpha(@mauve, 0.5);
+    font-weight: bold;
+    min-width: 35px;
+}
+
+#bluetooth {
+    background: alpha(@blue, 0.2);
+    color: @blue;
+    border-color: alpha(@blue, 0.5);
+}
+
+#bluetooth.connected {
+    background: alpha(@green, 0.2);
+    color: @green;
+    border-color: alpha(@green, 0.5);
+}
+
+#tray {
+    background: alpha(@surface1, 0.8);
+    border-color: alpha(@overlay1, 0.5);
+}
+
+#tray > .passive {
+    -gtk-icon-effect: dim;
+}
+
+#tray > .needs-attention {
+    -gtk-icon-effect: highlight;
+    background-color: @red;
+}
+
+#custom-separator {
+    color: @overlay0;
+    padding: 0 5px;
+    background: transparent;
+}
+
+#custom-power {
+    background: alpha(@red, 0.2);
+    color: @red;
+    border-color: alpha(@red, 0.5);
+    margin-right: 10px;
+    font-size: 13px;
+    padding: 0 12px;
+    min-width: 40px;
+}
+
+#custom-notification {
+    background: alpha(@lavender, 0.2);
+    color: @lavender;
+    border-color: alpha(@lavender, 0.5);
+}
+
+/* #custom-weather { */
+/*     color: @sky; */
+/*     padding: 0 10px; */
+/*     margin: 0 5px; */
+/*     font-size: 11px; */
+/* } */
+
+/* Hover effects */
+#clock:hover,
+#battery:hover,
+#cpu:hover,
+#memory:hover,
+#temperature:hover,
+#backlight:hover,
+#network:hover,
+#pulseaudio:hover,
+#language:hover,
+#bluetooth:hover,
+#custom-power:hover,
+#custom-notification:hover {
+    border-color: @lavender;
+    background: alpha(@lavender, 0.2);
+}
