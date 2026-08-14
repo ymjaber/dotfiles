@@ -1,0 +1,3 @@
+# Target-path patterns chezmoi must never apply to $HOME.
+README.md
+bootstrap.sh
