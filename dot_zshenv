@@ -9,4 +9,3 @@ export EDITOR=nvim VISUAL=nvim
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"   # systemd user ssh-agent socket
 export MANPAGER="sh -c 'col -bx | bat -l man -p'"          # man pages rendered by bat
 export MANROFFOPT="-c"
-[[ -f ~/.config/ai/current.env ]] && source ~/.config/ai/current.env  # ai use case drops this later
