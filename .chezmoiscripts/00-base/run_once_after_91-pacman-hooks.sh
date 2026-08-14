@@ -1,0 +1,29 @@
+#!/bin/bash
+# Pacman hygiene (system hooks, written once): cache trim + explicit-list audit dump
+# (the dump lands at /etc/pacman.d/pkglist.txt - an audit trail, never auto-installed).
+set -e
+sudo mkdir -p /etc/pacman.d/hooks
+sudo tee /etc/pacman.d/hooks/paccache.hook >/dev/null <<'HOOK'
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+[Action]
+Description = Trim package cache (keep 2)
+When = PostTransaction
+Exec = /usr/bin/paccache -rk2
+HOOK
+sudo tee /etc/pacman.d/hooks/pkglist.hook >/dev/null <<'HOOK'
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Operation = Remove
+Type = Package
+Target = *
+[Action]
+Description = Dump explicit package list for audit
+When = PostTransaction
+Exec = /bin/sh -c '/usr/bin/pacman -Qqe > /etc/pacman.d/pkglist.txt'
+HOOK
