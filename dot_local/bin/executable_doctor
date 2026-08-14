@@ -1,7 +1,5 @@
 #!/bin/bash
-# doctor - is my system whole? Each use case appends one short check block.
 ok(){ printf '\e[32m✓\e[0m %s\n' "$1"; }; bad(){ printf '\e[31m✗\e[0m %s\n' "$1"; fail=1; }
 command -v paru >/dev/null && ok paru || bad paru
-chezmoi verify &>/dev/null && ok "chezmoi state clean" || bad "chezmoi drift (run: chezmoi diff)"
-# --- use-case blocks land below ---
+chezmoi verify &>/dev/null && ok chezmoi || bad "chezmoi drift"
 exit ${fail:-0}
