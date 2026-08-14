@@ -9,4 +9,31 @@ fi
 paru -S --needed --noconfirm \
   age \
   git \
-  pacman-contrib
+  pacman-contrib \
+  zsh \
+  zsh-completions \
+  zsh-autosuggestions \
+  zsh-syntax-highlighting \
+  fzf-tab \
+  starship \
+  atuin \
+  fzf \
+  fd \
+  ripgrep \
+  zoxide \
+  eza \
+  bat \
+  dust \
+  duf \
+  procs \
+  btop \
+  bandwhich \
+  lazygit \
+  git-delta \
+  fastfetch \
+  tealdeer \
+  jq \
+  go-yq \
+  direnv \
+  trash-cli \
+  hyperfine

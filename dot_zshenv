@@ -1,0 +1,12 @@
+# Fallback for machines that don't export these
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+export XDG_CACHE_HOME="${XDG_CACHE_HOME:-$HOME/.cache}"
+export XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
+export ZDOTDIR="$HOME/.config/zsh"          # zsh reads its config from here, not ~
+typeset -U path; path=(~/.local/bin $path)  # user bins (doctor, later theme/menu-*); -U dedupes
+export EDITOR=nvim VISUAL=nvim
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"   # systemd user ssh-agent socket
+export MANPAGER="sh -c 'col -bx | bat -l man -p'"          # man pages rendered by bat
+export MANROFFOPT="-c"
+[[ -f ~/.config/ai/current.env ]] && source ~/.config/ai/current.env  # ai use case drops this later

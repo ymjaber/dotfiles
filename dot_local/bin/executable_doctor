@@ -2,4 +2,5 @@
 ok(){ printf '\e[32m✓\e[0m %s\n' "$1"; }; bad(){ printf '\e[31m✗\e[0m %s\n' "$1"; fail=1; }
 command -v paru >/dev/null && ok paru || bad paru
 chezmoi verify &>/dev/null && ok chezmoi || bad "chezmoi drift"
+[[ $(command -v atuin) && -S $SSH_AUTH_SOCK ]] && ok shell || bad shell
 exit ${fail:-0}
