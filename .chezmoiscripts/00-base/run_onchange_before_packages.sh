@@ -43,4 +43,5 @@ paru -S --needed --noconfirm \
   ripdrag \
   wl-clipboard \
   ttf-jetbrains-mono-nerd \
-  vivid
+  vivid \
+  neovim

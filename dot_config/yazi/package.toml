@@ -15,7 +15,7 @@ hash = "7a4b4237223aaa94e589d1c01a23542a"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:toggle-pane"
-rev = "3f2b882"
+rev = "=3f2b882"
 hash = "15e5b67a241172cbb86b8fbf9e63692"
 
 [[plugin.deps]]
