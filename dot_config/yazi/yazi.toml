@@ -12,5 +12,14 @@ edit = [{ run = 'nvim "$@"', block = true }]
 open = [{ run = 'xdg-open "$@"', desc = "open", orphan = true }]
 [open]
 prepend_rules = [{ mime = "text/*", use = "edit" }]
-[plugin]
-prepend_fetchers = [{ id = "git", name = "*", run = "git" }]   # git-status column; plugin installed next step
+
+# git-status column; two entries: files, then directories
+[[plugin.prepend_fetchers]]
+url   = "*"
+run   = "git"
+group = "git"
+
+[[plugin.prepend_fetchers]]
+url   = "*/"
+run   = "git"
+group = "git"
