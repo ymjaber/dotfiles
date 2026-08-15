@@ -42,4 +42,5 @@ paru -S --needed --noconfirm \
   yazi \
   ripdrag \
   wl-clipboard \
-  ttf-jetbrains-mono-nerd
+  ttf-jetbrains-mono-nerd \
+  vivid

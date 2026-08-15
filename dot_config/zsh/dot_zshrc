@@ -8,3 +8,6 @@ for m in "$ZDOTDIR"/modules/*.zsh(N); do source "$m"; done
 
 # re-apply the live terminal palette if the theme engine has written one
 [[ -r ~/.cache/theme-sequences ]] && cat ~/.cache/theme-sequences
+
+# syntax-highlighting wraps every ZLE widget, so it loads dead last
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh

@@ -1,5 +1,10 @@
 export FZF_DEFAULT_COMMAND='fd --type f --hidden --exclude .git'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND" FZF_ALT_C_COMMAND='fd --type d --hidden --exclude .git'
+
+# one look for every fzf surface. never add --popup/--tmux here: it breaks fzf-tab
+export FZF_DEFAULT_OPTS='--height=60% --layout=reverse --border=rounded --info=inline
+  --preview-window=right:55%:wrap --bind=ctrl-/:toggle-preview,ctrl-u:preview-page-up,ctrl-d:preview-page-down'
+
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 eval "$(direnv hook zsh)"

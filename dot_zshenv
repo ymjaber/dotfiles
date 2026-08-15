@@ -7,5 +7,5 @@ export ZDOTDIR="$HOME/.config/zsh"          # zsh reads its config from here, no
 typeset -U path; path=(~/.local/bin $path)  # user bins (doctor, later theme/menu-*); -U dedupes
 export EDITOR=nvim VISUAL=nvim
 export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"   # systemd user ssh-agent socket
-export MANPAGER="sh -c 'col -bx | bat -l man -p'"          # man pages rendered by bat
+export MANPAGER="bat -plman" # man pages rendered by bat
 export MANROFFOPT="-c"

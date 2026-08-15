@@ -10,3 +10,4 @@ alias rm='trash-put'                    # reversible delete (trash-list/-restore
 alias pacin="paru -Slq | fzf -m --preview 'paru -Si {1}' | xargs -ro paru -S"    # fuzzy package install
 alias pacrem="paru -Qq | fzf -m --preview 'paru -Qi {1}' | xargs -ro paru -Rns"  # fuzzy package remove
 alias cp='cp -iv' mvi='mv -iv'          # mvi = interactive mv; bare mv stays clean for scripts
+alias d='dirs -v'                       # numbered dir stack (AUTO_PUSHD) → cd -3
