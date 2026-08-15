@@ -1,5 +1,5 @@
 bindkey -v                              # vi mode
-export KEYTIMEOUT=1                     # 10ms esc = instant mode switch
+export KEYTIMEOUT=5                     # 50ms; at 10ms the esc-esc sudo bind was unreachable
 # cursor shape follows the mode: block in normal, beam in insert (same contract as nvim)
 function zle-keymap-select {
   case $KEYMAP in vicmd) print -n '\e[2 q';; *) print -n '\e[6 q';; esac

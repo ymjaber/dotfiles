@@ -1,7 +1,10 @@
 # order matters: options first, plugins wrap the line, hooks init tools last
-for f in options plugins keybinds aliases functions hooks; do
+for f in options plugins keybinds functions hooks; do
   source "$ZDOTDIR/$f.zsh"
 done
+
+# aliases load LAST: zsh expands them when a function is DEFINED, not when it runs
+source "$ZDOTDIR/aliases.zsh"
 
 # use-case modules plug in here; (N) = no error while the dir is empty or missing
 for m in "$ZDOTDIR"/modules/*.zsh(N); do source "$m"; done

@@ -6,6 +6,9 @@ export XDG_STATE_HOME="${XDG_STATE_HOME:-$HOME/.local/state}"
 export ZDOTDIR="$HOME/.config/zsh"          # zsh reads its config from here, not ~
 typeset -U path; path=(~/.local/bin $path)  # user bins (doctor, later theme/menu-*); -U dedupes
 export EDITOR=nvim VISUAL=nvim
-export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"   # systemd user ssh-agent socket
+
+# fallback only: an inbound ssh session already has a FORWARDED agent socket
+[[ -n $SSH_AUTH_SOCK ]] || export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"
+
 export MANPAGER="bat -plman" # man pages rendered by bat
 export MANROFFOPT="-c"

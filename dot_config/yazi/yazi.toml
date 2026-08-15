@@ -9,7 +9,7 @@ max_width = 1000             # kitty graphics previews work natively
 max_height = 1000
 [opener]
 edit = [{ run = 'nvim "$@"', block = true }]
-open = [{ run = 'xdg-open "$@"', desc = "open", orphan = true }]
+open = [{ run = 'for f in "$@"; do xdg-open "$f"; done', desc = "open", orphan = true }]
 [open]
 prepend_rules = [{ mime = "text/*", use = "edit" }]
 
