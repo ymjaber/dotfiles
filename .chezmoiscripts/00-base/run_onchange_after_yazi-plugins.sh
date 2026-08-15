@@ -1,4 +1,3 @@
 #!/bin/bash
 command -v ya >/dev/null || exit 0
-ya pkg add yazi-rs/plugins:git 2>/dev/null || true   # already added = fine
-ya pkg install                                       # installs anything listed but missing
+ya pkg install     # restores every plugin at the revision pinned in package.toml

@@ -2,3 +2,7 @@
 default_layout "compact"      // slim bar; full layouts opt-in: zellij -l dev
 copy_on_select true
 session_serialization true    // sessions survive restarts
+scrollback_editor "/usr/bin/nvim"   // ctrl-s then e opens this pane's scrollback in nvim
+serialization_interval 60           // default is every second
+show_startup_tips false
+// copy_command "wl-copy"           // deliberately unset: OSC52 already works and survives ssh
