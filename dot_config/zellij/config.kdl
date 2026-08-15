@@ -1,0 +1,4 @@
+// theme "theme"              // theming uncomments this when it ships themes/theme.kdl
+default_layout "compact"      // slim bar; full layouts opt-in: zellij -l dev
+copy_on_select true
+session_serialization true    // sessions survive restarts

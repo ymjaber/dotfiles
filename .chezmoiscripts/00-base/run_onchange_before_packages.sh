@@ -36,4 +36,10 @@ paru -S --needed --noconfirm \
   go-yq \
   direnv \
   trash-cli \
-  hyperfine
+  hyperfine \
+  kitty \
+  zellij \
+  yazi \
+  ripdrag \
+  wl-clipboard \
+  ttf-jetbrains-mono-nerd

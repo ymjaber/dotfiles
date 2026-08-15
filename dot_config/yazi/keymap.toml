@@ -1,0 +1,14 @@
+[[mgr.prepend_keymap]]
+on = ["<C-d>"]
+run = 'shell -- kitten transfer --direction=upload "$@"'   # drag-out over ssh (kitty transfer kitten)
+desc = "drag-out selected"
+
+[[mgr.prepend_keymap]]
+on = ["y"]                   # yank that also puts file:// uris on the clipboard
+run = ['''shell -- for p in "$@"; do echo "file://$p"; done | wl-copy -t text/uri-list''', "yank"]
+desc = "yank (+ uri to clipboard)"
+
+[[mgr.prepend_keymap]]
+on = ["<C-n>"]               # drag selected files into a GUI app (local)
+run = 'shell -- ripdrag -a -x "$@" &'
+desc = "drag-out to GUI (ripdrag)"
