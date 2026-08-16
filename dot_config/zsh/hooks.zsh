@@ -8,7 +8,17 @@ export FZF_DEFAULT_OPTS='--height=60% --layout=reverse --border=rounded --info=i
 eval "$(starship init zsh)"
 eval "$(zoxide init zsh)"
 eval "$(direnv hook zsh)"
-source /usr/share/fzf/key-bindings.zsh          # ctrl-t insert file, alt-c cd dir
+
+# the global fzf opts open a preview pane; these fill it
+export FZF_CTRL_T_OPTS="--preview 'bat --color=always --style=numbers {} 2>/dev/null || eza -1 --icons --color=always {}'"
+export FZF_ALT_C_OPTS="--preview 'eza --tree --level=2 --icons --color=always {}'"
+source /usr/share/fzf/key-bindings.zsh
+# arch: an unknown command tells you which package provides it
+
+_dotfiles_cnf=/usr/share/doc/pkgfile/command-not-found.zsh
+[[ -r $_dotfiles_cnf ]] && source $_dotfiles_cnf
+unset _dotfiles_cnf
+
 eval "$(atuin init zsh --disable-up-arrow)"     # last so atuin owns ctrl-r; up-arrow stays native
 
 # kitty's own shell integration emits the OSC-133 marks; ours only duplicated them

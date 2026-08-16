@@ -9,7 +9,13 @@ zle -N zle-keymap-select; zle -N zle-line-init
 bindkey '^?' backward-delete-char       # backspace deletes past the insert point too
 # esc esc = prepend sudo to this (or the previous) command
 sudo-cmd() { [[ -z $BUFFER ]] && BUFFER="sudo $(fc -ln -1)" || BUFFER="sudo $BUFFER"; CURSOR=$#BUFFER }
-zle -N sudo-cmd; bindkey '\e\e' sudo-cmd
+
+zle -N sudo-cmd
+# alt-s, not esc esc: in vi mode esc is the alt-prefix, so esc-esc needs a timeout long
+# enough to delay every single mode switch. alt-s arrives as one burst — instant.
+bindkey -M viins '\es' sudo-cmd
+bindkey -M vicmd '\es' sudo-cmd
+
 bindkey '^ ' autosuggest-accept         # ctrl-space accepts the ghost text
 
 # edit the current command in nvim; write+quit runs it. never bind `v` — that's visual mode
@@ -33,3 +39,11 @@ bindkey -M visual S add-surround
 
 # without this, autosuggestions drops you into insert mode after cs/ds
 ZSH_AUTOSUGGEST_IGNORE_WIDGETS+=(add-surround change-surround delete-surround select-bracketed select-quoted)
+
+# up/down search history by the prefix already typed; still line-moves in a multi-line buffer
+autoload -Uz up-line-or-beginning-search down-line-or-beginning-search
+zle -N up-line-or-beginning-search; zle -N down-line-or-beginning-search
+for k in '^[[A' '^[OA'; do bindkey -M viins "$k" up-line-or-beginning-search; done
+for k in '^[[B' '^[OB'; do bindkey -M viins "$k" down-line-or-beginning-search; done
+bindkey -M vicmd 'k' up-line-or-beginning-search
+bindkey -M vicmd 'j' down-line-or-beginning-search

@@ -1,5 +1,26 @@
 add_newline = true
 palette = "theme"           # colors resolve via [palettes.theme]; the theme engine fills it later
+
+command_timeout = 1000
+
+[status]
+disabled = false            # shows a failed command's exit code
+map_symbol = true           # SIGINT rather than a bare 130
+pipestatus = true
+
+[cmd_duration]
+min_time = 2000
+
+[jobs]
+number_threshold = 1
+
+[directory]
+truncation_length = 4
+truncate_to_repo = false
+
+[direnv]
+disabled = false
+
 [character]
 success_symbol = "[❯](bold green)"
 error_symbol = "[❯](bold red)"

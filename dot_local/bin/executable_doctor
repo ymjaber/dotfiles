@@ -1,7 +1,25 @@
 #!/bin/bash
+# doctor — is my system whole?
 ok(){ printf '\e[32m✓\e[0m %s\n' "$1"; }; bad(){ printf '\e[31m✗\e[0m %s\n' "$1"; fail=1; }
+src=$(chezmoi source-path)
+
 command -v paru >/dev/null && ok paru || bad paru
-chezmoi verify &>/dev/null && ok chezmoi || bad "chezmoi drift"
-[[ $(command -v atuin) && -S $SSH_AUTH_SOCK ]] && ok shell || bad shell
-command -v zellij >/dev/null && command -v yazi >/dev/null && ok terminal || bad terminal
+chezmoi verify &>/dev/null && ok chezmoi || bad "chezmoi drift (chezmoi diff)"
+[[ $(getent passwd "$USER" | cut -d: -f7) == */zsh ]] && ok "login shell" || bad "login shell not zsh"
+
+# every package any use case declared — apply never reinstalls one you removed by hand
+missing=$(sed -n 's/^  \([a-z0-9][a-z0-9._+-]*\) *\\\?$/\1/p' \
+  "$src"/.chezmoiscripts/*/run_onchange_before_packages.sh | sort -u | xargs -r pacman -T 2>/dev/null)
+[[ -z $missing ]] && ok packages || bad "missing: ${missing//$'\n'/ }"
+
+ssh-add -l &>/dev/null; (( $? != 2 )) && ok ssh-agent || bad "ssh-agent not answering"
+[[ -e /etc/pacman.d/hooks/paccache.hook && -e /etc/pacman.d/hooks/pkglist.hook ]] &&
+  ok "pacman hooks" || bad "pacman hooks missing"
+zsh -n "$HOME"/.config/zsh/*.zsh 2>/dev/null && ok "zsh config parses" || bad "zsh config syntax"
+
+[[ -n $LS_COLORS && -S ${XDG_RUNTIME_DIR}/atuin.sock ]] && ok shell || bad "shell (vivid cache / atuin daemon)"
+
+_w=$(grep -c '^\[\[plugin.deps\]\]' ~/.config/yazi/package.toml 2>/dev/null)
+_h=$(ls -1d ~/.config/yazi/plugins/*.yazi 2>/dev/null | wc -l)
+(( _w == _h )) && ok "yazi plugins ($_h)" || bad "yazi plugins: $_h of $_w installed"
 exit ${fail:-0}

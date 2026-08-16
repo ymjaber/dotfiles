@@ -7,7 +7,9 @@ if ! command -v paru &>/dev/null; then
   git clone https://aur.archlinux.org/paru.git "$t/paru"
   (cd "$t/paru" && makepkg -si --noconfirm)
 fi
-paru -S --needed --noconfirm \
+
+# official repos — no AUR round-trip, so a flaky AUR can't block them
+sudo pacman -S --needed --noconfirm \
   age \
   git \
   pacman-contrib \
@@ -15,7 +17,6 @@ paru -S --needed --noconfirm \
   zsh-completions \
   zsh-autosuggestions \
   zsh-syntax-highlighting \
-  fzf-tab \
   starship \
   atuin \
   fzf \
@@ -38,15 +39,21 @@ paru -S --needed --noconfirm \
   direnv \
   trash-cli \
   hyperfine \
+  vivid \
+  neovim \
+  pkgfile \
   kitty \
   zellij \
   yazi \
-  ripdrag \
   wl-clipboard \
   ttf-jetbrains-mono-nerd \
-  vivid \
-  neovim \
   7zip \
   poppler \
   ffmpeg \
-  imagemagick
+  imagemagick \
+  python
+
+# from the AUR (unreviewed upstream — keep this list short and deliberate)
+paru -S --needed --noconfirm \
+  fzf-tab \
+  ripdrag

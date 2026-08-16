@@ -1,7 +1,6 @@
 auto_sync = false            # local-first; sync decision reopens with the servers use case
 search_mode = "daemon-fuzzy" # uses the daemon's in-memory index
 filter_mode = "global"
-filter_mode_shell_up_key_binding = "session"
 workspaces = true            # inside a git repo, filter to that repo
 enter_accept = false         # first enter edits, second runs
 keymap_mode = "vim-insert"

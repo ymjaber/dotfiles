@@ -1,0 +1,6 @@
+#!/bin/bash
+python3 - "$@" <<'PY' | wl-copy -t text/uri-list
+import pathlib, sys, urllib.parse
+print("\r\n".join("file://" + urllib.parse.quote(str(pathlib.Path(p).resolve()))
+                  for p in sys.argv[1:]))
+PY

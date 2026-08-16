@@ -27,3 +27,33 @@ desc = "Restore last deleted files"
 on   = "U"
 run  = "plugin restore -- --interactive"
 desc = "Restore deleted files (interactive)"
+
+[[mgr.prepend_keymap]]
+on   = ["c", "u"]
+run  = 'shell -- uri-copy "$@"'
+desc = "Copy selected as file:// URIs"
+
+[[mgr.prepend_keymap]]
+on   = ["c", "t"]
+run  = 'shell --block -- kitten transfer --confirm-paths "$@" "$HOME/Downloads/"'
+desc = "Send selected to the local machine (kitty transfer)"
+
+[[mgr.prepend_keymap]]
+on   = "p"
+run  = "plugin smart-paste"
+desc = "Paste into the hovered directory"
+
+[[mgr.prepend_keymap]]
+on   = ["g", "D"]
+run  = "cd ~/.local/share/chezmoi"
+desc = "Go to the dotfiles source"
+
+[[mgr.prepend_keymap]]
+on   = ["g", "r"]
+run  = 'shell -- ya emit cd "$(git rev-parse --show-toplevel)"'
+desc = "Go to the repo root"
+
+[[mgr.prepend_keymap]]
+on   = "!"
+run  = 'shell --block -- $SHELL'
+desc = "Open a shell here"

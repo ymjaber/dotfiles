@@ -58,3 +58,54 @@ ddir() {
   age -d -- "$1" | tar -xz --keep-old-files || return 1
   trash-put -- "$1"
 }
+
+# grep the tree, pick a hit, land in nvim on that exact line
+rgf() {
+  emulate -L zsh
+  (( $# )) || { print -u2 "usage: rgf <pattern>"; return 2 }
+  local pick
+  pick=$(rg --line-number --no-heading --color=always --smart-case -- "$@" |
+    fzf --ansi --delimiter=: \
+        --preview 'bat --color=always --highlight-line {2} {1}' \
+        --preview-window 'right,60%,+{2}/2') || return
+  [[ -n $pick ]] && nvim "+${${pick#*:}%%:*}" -- "${pick%%:*}"
+}
+
+# pick processes, confirm, then signal them (TERM unless you pass another)
+fkill() {
+  emulate -L zsh
+  local -a pids
+  pids=(${(f)"$(ps -eo pid,user,pcpu,pmem,comm --sort=-pcpu |
+    fzf --header-lines=1 --multi --prompt='kill> ' | awk '{print $1}')"})
+  (( ${#pids} )) || return
+  read -q "?send ${1:-TERM} to ${#pids} process(es)? [y/N] " || { print; return 1 }
+  print; kill -${1:-TERM} -- ${pids[@]}
+}
+
+# zj: pick or name a session and attach/create. zjd: this project on the dev layout.
+zj() {
+  emulate -L zsh
+  local s=$1
+  if [[ -z $s ]]; then
+    local -a sessions=(${(f)"$(zellij list-sessions --short --no-formatting 2>/dev/null)"})
+    if (( ${#sessions} )); then
+      s=$(print -l -- $sessions | fzf --height=40% --reverse --prompt='session> ') || return
+    else
+      s=${PWD:t}
+    fi
+  fi
+  [[ -n $s ]] || return
+  zellij attach --create -- "$s"
+}
+zjd() {
+  emulate -L zsh
+  local root name
+  root=$(git rev-parse --show-toplevel 2>/dev/null) || root=$PWD
+  name=${root:t}
+  if zellij list-sessions --short --no-formatting 2>/dev/null | grep -qx -- "$name"; then
+    zellij attach -- "$name"
+  else
+    (builtin cd -- "$root" && zellij --layout dev --session "$name")
+  fi
+}
+zjl() { zellij list-sessions }
