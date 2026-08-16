@@ -17,7 +17,7 @@ ssh-add -l &>/dev/null; (( $? != 2 )) && ok ssh-agent || bad "ssh-agent not answ
   ok "pacman hooks" || bad "pacman hooks missing"
 zsh -n "$HOME"/.config/zsh/*.zsh 2>/dev/null && ok "zsh config parses" || bad "zsh config syntax"
 
-[[ -n $LS_COLORS && -S ${XDG_RUNTIME_DIR}/atuin.sock ]] && ok shell || bad "shell (vivid cache / atuin daemon)"
+[[ -s ~/.cache/ls-colors && -S ${XDG_RUNTIME_DIR}/atuin.sock ]] && ok shell || bad "shell (vivid cache / atuin daemon)"
 
 _w=$(grep -c '^\[\[plugin.deps\]\]' ~/.config/yazi/package.toml 2>/dev/null)
 _h=$(ls -1d ~/.config/yazi/plugins/*.yazi 2>/dev/null | wc -l)
