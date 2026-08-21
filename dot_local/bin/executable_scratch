@@ -1,0 +1,10 @@
+#!/bin/bash
+# scratch ← dot_local/bin/executable_scratch   (scratch <name> [cmd…])
+# focus it if it is already open, otherwise spawn it. The window rule floats, sizes and
+# centres it at map time; a freshly-mapped window takes focus on its own.
+n="scratch-${1:-term}"; shift 2>/dev/null
+if hyprctl clients -j | jq -e --arg c "$n" 'any(.[]; .class==$c)' >/dev/null; then
+  hyprctl dispatch "hl.dsp.focus({ window = 'class:$n' })" >/dev/null
+else
+  hyprctl dispatch "hl.dsp.exec_cmd('kitty --class $n ${*:-}')" >/dev/null
+fi

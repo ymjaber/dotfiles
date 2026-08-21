@@ -1,3 +1,5 @@
 README.md
 bootstrap.sh
 .config/yazi/plugins
+.config/mozilla/*
+.mozilla/*

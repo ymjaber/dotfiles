@@ -1,0 +1,30 @@
+#!/bin/bash
+# game-mode ← dot_local/bin/executable_game-mode   (game-mode on|off|toggle|reapply)
+flag=~/.cache/game-mode
+on(){ hyprctl eval 'hl.config({
+    animations = { enabled = false },
+    decoration = { blur = { enabled = false }, shadow = { enabled = false }, rounding = 0,
+                   active_opacity = 1.0, inactive_opacity = 1.0, fullscreen_opacity = 1.0 },
+    general    = { gaps_in = 0, gaps_out = 0, border_size = 1, allow_tearing = true },
+  })' >/dev/null
+  touch "$flag"
+  systemctl --user stop hypridle.service              # no idle dim/lock mid-match
+  tlpctl set performance 2>/dev/null                  # tlp-pd's CLI; ppd's is gone with the package
+  notify-send -a game-mode "game mode ON"; }
+off(){ rm -f "$flag"
+  hyprctl reload                                      # re-reads hyprland.lua = every value back
+  systemctl --user start hypridle.service
+  tlpctl set balanced 2>/dev/null
+  notify-send -a game-mode "game mode OFF"; }
+# ⚠ NOT `[[ -e $flag ]] && off || on`: off()'s last command is notify-send, which exits 1 when
+# it cannot reach a notification daemon — the || arm would then ALSO run on(), turning game
+# mode back on immediately after turning it off. And a `*)` arm matters because this script is
+# reachable two ways (SUPER+SHIFT+G, by hand); without it a typo silently returns 0.
+case "${1:-toggle}" in
+  on)      on ;;
+  off)     off ;;
+  toggle)  if [[ -e $flag ]]; then off; else on; fi ;;
+  reapply) [[ -e $flag ]] && on ;;
+  *)       echo "usage: game-mode on|off|toggle|reapply" >&2; exit 2 ;;
+esac
+exit 0

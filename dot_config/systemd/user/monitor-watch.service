@@ -1,0 +1,11 @@
+[Unit]
+Description=Reconcile displays on hotplug
+PartOf=graphical-session.target
+After=graphical-session.target
+Requisite=graphical-session.target
+[Service]
+ExecStart=%h/.local/bin/monitor-watch
+Restart=on-failure
+RestartSec=2
+[Install]
+WantedBy=graphical-session.target

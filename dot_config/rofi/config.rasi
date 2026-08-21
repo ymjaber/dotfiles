@@ -1,0 +1,16 @@
+configuration {
+  /* calc and emoji are PLUGIN modes (rofi-calc, rofi-emoji) — they only resolve once those
+     packages are installed, so they are recorded in the roster, not assumed. */
+  modes:       "drun,run,window,calc,emoji";
+  combi-modes: "drun,run,window,calc,emoji";
+  sidebar-mode: true;          /* the mode tabs along the bottom */
+  /* ⚠ plain Tab does NOT switch modes — that is kb-element-next (moves down the list).
+     Mode switching is Shift+Right / Shift+Left, or Ctrl+Tab / Ctrl+Shift+Tab
+     (rofi-keys(5): kb-mode-next, kb-mode-previous). */
+
+  /* run mode only — rofi 2.0.0 has no drun launch hook, so drun-launched apps
+     land in the compositor's unit. Wrapping rofi itself would be worse: everything
+     it spawns would inherit rofi's cgroup and keep that scope alive. */
+  run-command: "uwsm app -- {cmd}";
+  show-icons: true;
+}

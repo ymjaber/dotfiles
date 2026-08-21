@@ -1,0 +1,16 @@
+#!/bin/bash
+# zoom ← dot_local/bin/executable_zoom   (zoom in|out|reset)
+z=$(hyprctl getoption cursor:zoom_factor -j | jq .float)
+# ⚠ hyprctl prints "no such option" and still exits 0, so a renamed option gives jq a parse
+# error, z ends up empty, and bc then fails silently too (it also exits 0) — the whole chain
+# fails open with no error anywhere. Validate the value instead of trusting the exit status.
+[[ $z =~ ^[0-9.]+$ ]] || z=1
+case "$1" in
+  in)    z=$(bc -l <<<"$z*1.3") ;;
+  out)   z=$(bc -l <<<"$z/1.3"); (( $(bc -l <<<"$z<1") )) && z=1 ;;
+  reset) z=1 ;;
+  # ⚠ without this arm, `zoom` with no argument re-set the CURRENT value — a silent no-op
+  # that looks exactly like "zoom is broken". Same defect class as game-mode's missing arm.
+  *)     echo "usage: zoom in|out|reset" >&2; exit 2 ;;
+esac
+hyprctl eval "hl.config({ cursor = { zoom_factor = $z } })" >/dev/null

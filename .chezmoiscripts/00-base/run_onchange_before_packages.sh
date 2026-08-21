@@ -51,9 +51,74 @@ sudo pacman -S --needed --noconfirm \
   poppler \
   ffmpeg \
   imagemagick \
-  python
+  python \
+  hyprland \
+  xdg-desktop-portal-hyprland \
+  xdg-desktop-portal-gtk \
+  hyprpolkitagent \
+  qt5-wayland \
+  qt6-wayland \
+  uwsm \
+  greetd \
+  greetd-tuigreet \
+  waybar \
+  rofi \
+  swaync \
+  cliphist \
+  hypridle \
+  hyprlock \
+  hyprpicker \
+  hyprsunset \
+  awww \
+  grim \
+  slurp \
+  satty \
+  brightnessctl \
+  playerctl \
+  blueman \
+  network-manager-applet \
+  thunar \
+  thunar-volman \
+  gvfs \
+  gvfs-mtp \
+  tumbler \
+  ffmpegthumbnailer \
+  nwg-look \
+  papirus-icon-theme \
+  matugen \
+  mesa-utils \
+  firefox \
+  inter-font \
+  noto-fonts \
+  noto-fonts-emoji \
+  noto-fonts-cjk \
+  libqalculate \
+  tesseract \
+  tesseract-data-eng \
+  zbar \
+  socat \
+  bc \
+  libnotify \
+  bluez-utils \
+  tlp-pd \
+  wireplumber \
+  sof-firmware \
+  libpulse \
+  networkmanager \
+  fprintd \
+  rofi-calc \
+  rofi-emoji \
+  tesseract-data-ara \
+  plasma-meta
 
 # from the AUR (unreviewed upstream — keep this list short and deliberate)
 paru -S --needed --noconfirm \
   fzf-tab \
-  ripdrag
+  ripdrag \
+  grimblast \
+  pwvucontrol \
+  qt6ct-kde \
+  bibata-cursor-theme-bin \
+  ttf-amiri \
+  hyprshade \
+  firefox-tridactyl-native

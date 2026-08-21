@@ -1,0 +1,12 @@
+#!/bin/bash
+# ocr ← dot_local/bin/executable_ocr   (ocr | ocr --qr)
+f=$(mktemp --suffix=.png); trap 'rm -f "$f"' EXIT
+hyprpicker -r -z & fp=$!; sleep 0.15; grim -g "$(slurp)" "$f"; kill $fp 2>/dev/null   # freeze while selecting
+# ⚠ capture, THEN test. Piping straight into wl-copy makes the pipeline's status wl-copy's,
+# so a failed recognition (zbarimg exits 4 on no-QR; tesseract yields whitespace) still
+# reports success AND overwrites the clipboard with zero bytes.
+if [[ $1 == --qr ]]; then t=$(zbarimg -q --raw "$f" 2>/dev/null); what=QR
+else t=$(magick "$f" -colorspace Gray -normalize -sharpen 0x1 - 2>/dev/null \
+         | tesseract stdin stdout -l eng+ara 2>/dev/null); what=text; fi
+[[ ${t//[[:space:]]/} ]] || { notify-send -a ocr "no $what found"; exit 1; }
+printf '%s' "$t" | wl-copy && notify-send -a ocr "$what → clipboard"

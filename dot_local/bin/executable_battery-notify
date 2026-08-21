@@ -1,0 +1,16 @@
+#!/bin/bash
+# battery-notify ← dot_local/bin/executable_battery-notify
+b=$(cat /sys/class/power_supply/BAT*/capacity 2>/dev/null | head -1)
+s=$(cat /sys/class/power_supply/BAT*/status 2>/dev/null | head -1)
+[[ $s == Discharging ]] || { rm -f ~/.cache/bat-low ~/.cache/bat-crit; exit; }
+(( b <= 5 ))  && { notify-send -u critical "battery ${b}% — suspending"; sleep 10; systemctl suspend; exit; }
+# ⚠ touch BOTH flags at 15: the two guards are independent predicates over the same state, so
+# a cold cache below 15 fires the critical AND the normal toast quoting the same percentage.
+# Reachable in practice — any tick that sees Charging clears both flags, so a brief AC top-up
+# below 15% re-arms them and the next discharging tick double-fires.
+(( b <= 15 )) && [[ ! -f ~/.cache/bat-crit ]] && { notify-send -u critical "battery ${b}%"; touch ~/.cache/bat-crit ~/.cache/bat-low; }
+(( b <= 25 )) && [[ ! -f ~/.cache/bat-low  ]] && { notify-send "battery ${b}%";              touch ~/.cache/bat-low; }
+# ⚠ Type=oneshot: the trailing (( )) test is FALSE on almost every run and its status would
+# become the unit's, marking battery-notify.service failed every 2 minutes on battery.
+# Do NOT paper over this with SuccessExitStatus=1 — that would swallow real failures too.
+exit 0

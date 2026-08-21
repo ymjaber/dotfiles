@@ -1,0 +1,16 @@
+#!/bin/bash
+# menu-wifi ← dot_local/bin/executable_menu-wifi
+# ⚠ SSID is asked for LAST and rejoined, because `nmcli -t` escapes ':' and '\' inside values
+# (man nmcli, -e/--escape, default yes) — `nmcli -t -f BSSID dev wifi` really does print
+# 00\:EB\:D8\:F7\:A0\:CE. With SSID in the middle, one colon in a network name shifts every
+# awk field and poisons the sort: an SSID "my:net" rendered as "[my\]  net%  70".
+# Unescape colon FIRST then backslash; use length(s) or an SSID literally named "0" is dropped
+# as numeric-false. awk is gawk here, where "\\" is the replacement for one literal backslash.
+line=$(nmcli -t -f ACTIVE,SIGNAL,SECURITY,SSID dev wifi | sort -t: -k2 -rn \
+  | awk -F: 'NF>3{ s=$4; for(i=5;i<=NF;i++) s=s":"$i
+      gsub(/\\:/,":",s); gsub(/\\\\/,"\\",s)
+      if(length(s)) printf "%s\t%s  %s%%  %s\n", s, ($1=="yes"?"✓":" "), $2, $3 }' \
+  | rofi -dmenu -i -p wifi)
+ssid=${line%%$'\t'*}; [[ $ssid ]] || exit
+nmcli device wifi connect "$ssid" 2>/dev/null && exit
+pw=$(rofi -dmenu -password -p "password for $ssid"); nmcli device wifi connect "$ssid" password "$pw"

@@ -1,0 +1,10 @@
+#!/bin/bash
+# menu-power ← dot_local/bin/executable_menu-power  (wlogout dropped — audit #4)
+c=$(printf 'lock\nlogout\nsuspend\nhibernate\nreboot\npoweroff' | rofi -dmenu -p power)
+case "$c" in
+  lock) lock ;;
+  logout) uwsm stop ;;                          # NEVER hyprctl dispatch exit under uwsm
+  suspend) systemctl suspend ;;                 # hypridle's delay-inhibitor locks first
+  hibernate) systemctl hibernate ;;             # the 3.2 sleep hook handles Data/ESP unmounts
+  reboot|poweroff) [[ $(printf 'no\nyes' | rofi -dmenu -p "really $c?") == yes ]] && systemctl "$c" ;;
+esac

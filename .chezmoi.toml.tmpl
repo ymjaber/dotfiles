@@ -1,0 +1,3 @@
+{{- $gpu := promptStringOnce . "gpu" "GPU (intel/amd/nvidia/hybrid)" -}}
+[data]
+    gpu = {{ $gpu | quote }}

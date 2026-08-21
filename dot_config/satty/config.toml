@@ -1,0 +1,9 @@
+[general]
+# satty's own GTK clipboard dies with the process on Wayland — upstream's sample sets this too
+copy-command = "wl-copy"
+# annotate → Ctrl+C or Ctrl+S → window closes
+early-exit = ["copy", "save"]
+# omit output-filename entirely and Ctrl+S is a dead key; chrono strftime, ~ ok since 0.20.0
+output-filename = "~/Pictures/screenshots/satty-%Y%m%d-%H%M%S.png"
+initial-tool = "brush"
+corner-roundness = 12

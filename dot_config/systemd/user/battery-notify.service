@@ -1,0 +1,5 @@
+[Unit]
+Description=Battery level guard
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/battery-notify

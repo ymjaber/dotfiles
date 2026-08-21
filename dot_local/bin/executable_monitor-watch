@@ -1,0 +1,13 @@
+#!/bin/bash
+# monitor-watch ← dot_local/bin/executable_monitor-watch
+sock=$XDG_RUNTIME_DIR/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock
+# ⚠ the globs are QUOTED and anchored on ">>": Hyprland posts BOTH monitoradded and
+# monitoraddedv2 for a single plug (same function, straight-line code, unconditional), so a
+# bare monitoradded* glob matches the v2 line too and every hotplug fires the handler twice.
+socat -U - "UNIX-CONNECT:$sock" 2>/dev/null | while read -r ev; do case "$ev" in
+  "monitoradded>>"*|"monitorremoved>>"*) sleep 1; awww restore 2>/dev/null
+    notify-send -t 1500 -a hypr "display" "${ev%%>>*}: ${ev#*>>}" ;;
+esac; done
+# ⚠ the pipeline's status is the while-loop's (0 on EOF), so a dead socket exits CLEAN and
+# Restart=on-failure never fires — the unit shows "active" forever while doing nothing.
+exit "${PIPESTATUS[0]}"

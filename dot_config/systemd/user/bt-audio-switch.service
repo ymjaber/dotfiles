@@ -1,0 +1,8 @@
+[Unit]
+Description=Route audio to a Bluetooth sink on connect
+After=pipewire.service
+[Service]
+ExecStart=%h/.local/bin/bt-audio-switch
+Restart=on-failure
+[Install]
+WantedBy=default.target

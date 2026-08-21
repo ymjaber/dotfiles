@@ -1,0 +1,3 @@
+#!/bin/bash
+# menu-clipboard ← dot_local/bin/executable_menu-clipboard
+cliphist list | rofi -dmenu -p clip | cliphist decode | wl-copy

@@ -22,4 +22,32 @@ zsh -n "$HOME"/.config/zsh/*.zsh 2>/dev/null && ok "zsh config parses" || bad "z
 _w=$(grep -c '^\[\[plugin.deps\]\]' ~/.config/yazi/package.toml 2>/dev/null)
 _h=$(ls -1d ~/.config/yazi/plugins/*.yazi 2>/dev/null | wc -l)
 (( _w == _h )) && ok "yazi plugins ($_h)" || bad "yazi plugins: $_h of $_w installed"
+
+# desktop — the things `chezmoi apply` cannot put back, and the things that fail SILENTLY
+_d=
+for _u in waybar swaync hypridle hyprsunset cliphist hyprpolkitagent awww-daemon \
+          cliphist-image monitor-watch power-profile-watch bt-audio-switch; do
+  systemctl --user is-enabled -q "$_u.service" 2>/dev/null || _d="$_d $_u"
+done
+systemctl --user is-enabled -q battery-notify.timer 2>/dev/null || _d="$_d battery-notify.timer"
+[[ -z $_d ]] && ok "session units" || bad "session units disabled:$_d"
+
+_s=$(hyprshade ls 2>/dev/null | wc -l)                       # 2 shipped + our 6
+(( _s == 8 )) && ok "screen shaders" || bad "screen shaders: $_s of 8"
+luac -p ~/.config/hypr/hyprland.lua 2>/dev/null && ok "hyprland.lua parses" || bad "hyprland.lua syntax"
+
+# ⚠ the compositor's PATH, not the shell's. Binds exec through /bin/sh, which never sources
+# zshenv — when ~/.local/bin was missing here, all 57 binds registered, configerrors was empty,
+# and EVERY script bind silently ran a command that did not exist.
+if pgrep -x Hyprland >/dev/null; then
+  tr '\0' '\n' < /proc/"$(pgrep -x Hyprland | head -1)"/environ | grep -q "^PATH=.*$HOME/\.local/bin" \
+    && ok "compositor PATH" || bad "~/.local/bin missing from the compositor PATH — script binds are dead"
+fi
+
+# ⚠ by D-BUS OWNER, not by is-active: tlp-pd and power-profiles-daemon both claim this name,
+# the loser dies quietly, and the winner answers normall
+_o=$(busctl --system list 2>/dev/null | awk '/^net\.hadess\.PowerProfiles/{print $6}')
+[[ $_o == tlp-pd.service ]] && ok "power profiles (tlp-pd)" || bad "PowerProfiles owned by ${_o:-nobody}, want tlp-pd.service"
+
 exit ${fail:-0}
+

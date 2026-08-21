@@ -1,0 +1,7 @@
+#!/bin/bash
+# cheatsheet ← dot_local/bin/executable_cheatsheet
+hyprctl binds -j | jq -r '.[]|select(.has_description)|"\(.modmask)\t\(.key)\t\(.description)"' \
+| awk -F'\t' '{ m=$1; s=""
+    if(and(m,64))s=s"SUPER+"; if(and(m,8))s=s"ALT+"; if(and(m,4))s=s"CTRL+"; if(and(m,1))s=s"SHIFT+"
+    printf "%s%s\t%s\n", s, $2, $3 }' \
+| sort | column -t -s$'\t' | rofi -dmenu -i -p keys   # gawk `and()` = bitwise; awk=gawk on Arch

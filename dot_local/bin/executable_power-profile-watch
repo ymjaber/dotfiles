@@ -1,0 +1,17 @@
+#!/bin/bash
+# power-profile-watch ← dot_local/bin/executable_power-profile-watch
+# ⚠ three things, each found live:
+#  1. game mode owns the profile while it is on — without this guard a single power_supply
+#     event drops `performance` back to `balanced` mid-match while the flag file and the
+#     notification both still say ON.
+#  2. an assignment, not `A && B || C`: if the AC check is false the && arm is skipped and the
+#     || arm fires, which is right by accident here but breaks the moment B can fail.
+#  3. only write when it differs — udevadm emits banner lines and repeats, and every one of
+#     them was previously a redundant `tlpctl set`.
+set_p() { [[ -e ~/.cache/game-mode ]] && return
+  local want
+  [[ $(cat /sys/class/power_supply/A*/online 2>/dev/null | head -1) == 1 ]] \
+    && want=balanced || want=power-saver
+  [[ $(tlpctl get 2>/dev/null) == "$want" ]] || tlpctl set "$want"; }
+set_p                                                    # reconcile at login, not only on transitions
+udevadm monitor -u -s power_supply 2>/dev/null | while read -r _; do set_p; done

@@ -1,0 +1,5 @@
+" tridactylrc ← dot_config/tridactyl/tridactylrc
+set smoothscroll true
+bind J tabprev
+bind K tabnext
+set editorcmd kitty -e nvim %f '+normal!%lGzv%c|'

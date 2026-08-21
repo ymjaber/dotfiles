@@ -1,0 +1,5 @@
+#!/bin/bash
+# lock ← dot_local/bin/executable_lock
+playerctl pause 2>/dev/null
+hyprctl switchxkblayout all 0 >/dev/null    # `all` fans out over every keyboard by itself
+exec hyprlock

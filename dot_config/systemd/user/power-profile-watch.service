@@ -1,0 +1,7 @@
+[Unit]
+Description=AC/battery to power profile
+[Service]
+ExecStart=%h/.local/bin/power-profile-watch
+Restart=on-failure
+[Install]
+WantedBy=default.target
