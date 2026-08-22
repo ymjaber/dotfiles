@@ -1,0 +1,42 @@
+-- lua/config/keymaps.lua  ←  dot_config/nvim/lua/config/keymaps.lua.tmpl
+-- ⚠ The spec block at the bottom is GENERATED from .chezmoidata/keymaps.yaml.
+-- Edit the yaml, then `chezmoi apply` — never this file's rendered output.
+
+-- ── nvim-only: not spec rows, no counterpart in Rider or VS Code ──
+vim.keymap.set("n", "<A-j>", "<cmd>m .+1<cr>==", { desc = "move line down" })
+vim.keymap.set("n", "<A-k>", "<cmd>m .-2<cr>==", { desc = "move line up" })
+vim.keymap.set("i", "<A-j>", "<esc><cmd>m .+1<cr>==gi", { desc = "move line down" })
+vim.keymap.set("i", "<A-k>", "<esc><cmd>m .-2<cr>==gi", { desc = "move line up" })
+vim.keymap.set("x", "<A-j>", ":m '>+1<cr>gv=gv", { desc = "move selection down" })
+vim.keymap.set("x", "<A-k>", ":m '<-2<cr>gv=gv", { desc = "move selection up" })
+vim.keymap.set("n", "<leader>X", "<cmd>!chmod +x %<CR>", { desc = "chmod +x file" })
+
+vim.keymap.set({ "n", "x" }, "<leader>y", '"+y', { desc = "yank to clipboard" })
+vim.keymap.set("n", "<leader>Y", '"+Y', { desc = "yank line to clipboard" })
+vim.keymap.set({ "n", "x" }, "<leader>p", '"+p', { desc = "paste from clipboard" })
+
+vim.keymap.set(
+  { "n", "x" },
+  "<leader>cf",
+  function() require("conform").format({ async = true, lsp_format = "fallback" }) end,
+  { desc = "format buffer" }
+)
+vim.keymap.set("n", "<leader>uf", function()
+  vim.g.disable_autoformat = not vim.g.disable_autoformat
+  vim.notify("autoformat " .. (vim.g.disable_autoformat and "OFF" or "ON"))
+end, { desc = "toggle autoformat" })
+
+-- ── spec rows — GENERATED from .chezmoidata/keymaps.yaml ──
+-- `mode` is a string of mode chars ("nx"); vim.keymap.set wants a table, so split it here
+-- rather than teaching the template to emit Lua tables.
+local function spec(modes, lhs, rhs, desc)
+  local m = {}
+  for c in modes:gmatch(".") do
+    m[#m + 1] = c
+  end
+  vim.keymap.set(m, lhs, rhs, { desc = desc })
+end
+
+{{ range .keymaps -}}
+spec("{{ get . "mode" | default "n" }}", "{{ replace "<ld>" "<leader>" .keys }}", function() {{ .nvim }} end, "{{ .desc }}")
+{{ end -}}

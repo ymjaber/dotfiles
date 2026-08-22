@@ -5,7 +5,16 @@ return {
   "stevearc/conform.nvim",
   event = "BufWritePre",
   opts = {
-    format_on_save = { timeout_ms = 500, lsp_format = "fallback" },
+    format_on_save = function(bufnr)
+      if vim.g.disable_autoformat or vim.b[bufnr].disable_autoformat then
+        return nil
+      end
+      local name = vim.api.nvim_buf_get_name(bufnr)
+      if vim.bo[bufnr].filetype == "lua" and not name:match("/nvim/") then
+        return nil
+      end
+      return { timeout_ms = 500, lsp_format = "never" }
+    end,
     formatters_by_ft = {
       lua = { "stylua" },
       sh = { "shfmt" },

@@ -3,7 +3,7 @@
 -- Hybrid installs: big servers via pacman (§Packages), npm/.NET via mason.
 return {
   { "mason-org/mason.nvim", opts = {} },
-  { "seblyng/roslyn.nvim", ft = "cs", opts = {} },   -- the money language
+  { "seblyng/roslyn.nvim", ft = "cs", opts = {} }, -- the money language
   {
     "neovim/nvim-lspconfig",
     config = function()

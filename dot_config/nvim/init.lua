@@ -4,5 +4,5 @@ require("config.keymaps")
 
 if not vim.g.vscode then
   require("config.autocmds")
-  require("config.lazy")          -- plugins only outside VS Code (it renders its own UI)
+  require("config.lazy") -- plugins only outside VS Code (it renders its own UI)
 end

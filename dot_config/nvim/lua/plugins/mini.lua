@@ -4,6 +4,19 @@
 return {
   { "nvim-mini/mini.pairs", event = "InsertEnter", opts = {} },
   { "nvim-mini/mini.ai", event = "VeryLazy", opts = {} },
-  { "nvim-mini/mini.surround", keys = { "gsa", "gsd", "gsr" }, opts = {
-      mappings = { add = "gsa", delete = "gsd", replace = "gsr", find = "gsf", find_left = "gsF", highlight = "gsh", update_n_lines = "gsn" } } },
+  {
+    "nvim-mini/mini.surround",
+    keys = { "gsa", "gsd", "gsr" },
+    opts = {
+      mappings = {
+        add = "gsa",
+        delete = "gsd",
+        replace = "gsr",
+        find = "gsf",
+        find_left = "gsF",
+        highlight = "gsh",
+        update_n_lines = "gsn",
+      },
+    },
+  },
 }

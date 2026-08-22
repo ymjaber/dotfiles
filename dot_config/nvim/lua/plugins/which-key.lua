@@ -6,9 +6,13 @@ return {
   opts = {
     preset = "modern",
     spec = {
-      { "<leader>f", group = "find" }, { "<leader>g", group = "git" }, { "<leader>h", group = "hunk" },
-      { "<leader>c", group = "code" }, { "<leader>x", group = "diagnostics" },
-      { "<leader>n", group = "notes" }, { "<leader>a", group = "ai" },
+      { "<leader>f", group = "find" },
+      { "<leader>g", group = "git" },
+      { "<leader>h", group = "hunk" },
+      { "<leader>c", group = "code" },
+      { "<leader>x", group = "diagnostics" },
+      { "<leader>n", group = "notes" },
+      { "<leader>a", group = "ai" },
     },
   },
 }

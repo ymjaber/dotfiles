@@ -7,8 +7,8 @@ keymaps:
   - { keys: "gd",     desc: "definition",   nvim: "vim.lsp.buf.definition()",   idea: "GotoDeclaration",      vscode: "editor.action.revealDefinition" }
   - { keys: "gr",     desc: "references",   nvim: "Snacks.picker.lsp_references()", idea: "ShowUsages",       vscode: "editor.action.goToReferences" }
   - { keys: "K",      desc: "hover",        nvim: "vim.lsp.buf.hover()",        idea: "QuickJavaDoc",         vscode: "editor.action.showHover" }
-  - { keys: "<ld>e",  desc: "file explorer",nvim: "require('oil').open()",      idea: "ActivateProjectToolWindow", vscode: "workbench.view.explorer" }
+  - { keys: "<ld>e",  desc: "file explorer",nvim: 'require("oil").open()',      idea: "ActivateProjectToolWindow", vscode: "workbench.view.explorer" }
   - { keys: "<ld>gg", desc: "git ui",       nvim: "Snacks.lazygit()",           idea: "Vcs.Show.Local.Changes", vscode: "workbench.view.scm" }
-  - { keys: "<ld>db", desc: "breakpoint",   nvim: "require('dap').toggle_breakpoint()", idea: "ToggleLineBreakpoint", vscode: "editor.debug.action.toggleBreakpoint" }
-  - { keys: "[d",     desc: "prev diagnostic", nvim: "vim.diagnostic.jump({count=-1})", idea: "GotoPreviousError", vscode: "editor.action.marker.prev" }
-  - { keys: "]d",     desc: "next diagnostic", nvim: "vim.diagnostic.jump({count=1})",  idea: "GotoNextError",     vscode: "editor.action.marker.next" }
+  - { keys: "<ld>db", desc: "breakpoint",   nvim: 'require("dap").toggle_breakpoint()', idea: "ToggleLineBreakpoint", vscode: "editor.debug.action.toggleBreakpoint" }
+  - { keys: "[d",     desc: "prev diagnostic", nvim: "vim.diagnostic.jump({ count = -1 })", idea: "GotoPreviousError", vscode: "editor.action.marker.prev" }
+  - { keys: "]d",     desc: "next diagnostic", nvim: "vim.diagnostic.jump({ count = 1 })",  idea: "GotoNextError",     vscode: "editor.action.marker.next" }
