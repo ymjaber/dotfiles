@@ -1,0 +1,11 @@
+#!/bin/bash
+# extensions.txt hash: {{ include "dot_config/Code/User/extensions.txt" | sha256sum }}
+set -euo pipefail
+list=~/.config/Code/User/extensions.txt
+[[ -r $list ]] || exit 0
+command -v code >/dev/null || exit 0
+installed=$(code --list-extensions 2>/dev/null || true)
+while read -r ext; do
+  [[ -z $ext || $ext == \#* ]] && continue
+  grep -qix -- "$ext" <<<"$installed" || code --install-extension "$ext" --force
+done < "$list"

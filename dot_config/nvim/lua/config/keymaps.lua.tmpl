@@ -29,14 +29,17 @@ end, { desc = "toggle autoformat" })
 -- ── spec rows — GENERATED from .chezmoidata/keymaps.yaml ──
 -- `mode` is a string of mode chars ("nx"); vim.keymap.set wants a table, so split it here
 -- rather than teaching the template to emit Lua tables.
-local function spec(modes, lhs, rhs, desc)
+local function spec(modes, lhs, rhs, vscode_cmd, desc)
   local m = {}
   for c in modes:gmatch(".") do
     m[#m + 1] = c
+  end
+  if vim.g.vscode and vscode_cmd then
+    rhs = function() require("vscode").action(vscode_cmd) end
   end
   vim.keymap.set(m, lhs, rhs, { desc = desc })
 end
 
 {{ range .keymaps -}}
-spec("{{ get . "mode" | default "n" }}", "{{ replace "<ld>" "<leader>" .keys }}", function() {{ .nvim }} end, "{{ .desc }}")
+spec("{{ get . "mode" | default "n" }}", "{{ replace "<ld>" "<leader>" .keys }}", function() {{ .nvim }} end, "{{ get . "vscode" | default "" }}", "{{ .desc }}")
 {{ end -}}

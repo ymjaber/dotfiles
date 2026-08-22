@@ -91,5 +91,16 @@ if [[ $_g && -r $_g/power/runtime_status ]]; then
     || bad "dGPU is '$_st', want suspended — expected right after CUDA or a prime-run app, otherwise something holds it awake (desktop.md § env.tmpl)"
 fi
 
+# `set which-key easymotion` in ~/.ideavimrc is a SILENT no-op without the plugins, and
+# JetBrains ships no CLI installer, so nothing in chezmoi can put them there.
+_r=$(ls -d ~/.local/share/JetBrains/Rider* 2>/dev/null | head -1)
+if [[ $_r ]]; then
+  _m=
+  for _p in ideavim which-key easymotion acejump; do
+    ls "$_r" 2>/dev/null | grep -qi -- "$_p" || _m="$_m $_p"
+  done
+  [[ -z $_m ]] && ok "Rider vim plugins" || bad "Rider plugins missing:$_m — Settings → Plugins"
+fi
+
 exit ${fail:-0}
 

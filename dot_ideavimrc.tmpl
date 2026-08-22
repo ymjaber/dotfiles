@@ -1,0 +1,27 @@
+" ~/.ideavimrc ← dot_ideavimrc.tmpl — GENERATED, never hand-edit (edit the yaml)
+"
+" ⚠ ON EVERY NEW INSTALL, add these from Rider → Settings → Plugins. chezmoi cannot place them
+" (JetBrains ships no CLI installer), and the `set` line below is a SILENT no-op without them —
+" no popup, no error, nothing to notice:
+"     IdeaVim              the vim engine itself; nothing here works without it
+"     Which-Key            renders the WhichKeyDesc lines below
+"     IdeaVim-EasyMotion   `set easymotion`
+"     AceJump              EasyMotion depends on it
+
+let mapleader=" "
+set surround commentary easymotion which-key notimeout
+set ignorecase smartcase incsearch hlsearch relativenumber
+sethandler <C-r> a:ide            " the taught escape valve: Rider keeps IDE-critical ctrl keys
+
+" ⚠ NOT `set clipboard+=unnamedplus` — same call as Neovim's, same reason: it routes every
+" delete and change through the system clipboard, and cliphist records each one.
+nnoremap <leader>y "+y
+vnoremap <leader>y "+y
+nnoremap <leader>Y "+Y
+nnoremap <leader>p "+p
+vnoremap <leader>p "+p
+{{ range .keymaps }}{{ if get . "idea" -}}
+{{ $lhs := replace "<ld>" "<leader>" .keys -}}
+nmap {{ $lhs }} <Action>({{ .idea }})
+let g:WhichKeyDesc_{{ regexReplaceAll "[^a-zA-Z0-9]" .keys "_" }} = "{{ $lhs }} {{ .desc }}"
+{{ end }}{{ end -}}

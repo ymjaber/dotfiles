@@ -1,0 +1,8 @@
+{
+  "extensions.experimental.affinity": { "asvetliakov.vscode-neovim": 1 },
+  "vscode-neovim.neovimExecutablePaths.linux": "/usr/bin/nvim",
+  "editor.lineNumbers": "relative",
+  "editor.scrollBeyondLastLine": false,
+  "workbench.list.automaticKeyboardNavigation": false,
+  "telemetry.telemetryLevel": "off"
+}
