@@ -111,7 +111,20 @@ sudo pacman -S --needed --noconfirm \
   tesseract-data-ara \
   plasma-meta \
   hyprsunset \
-  swayosd
+  swayosd \
+  github-cli \
+  stylua \
+  shfmt \
+  dotnet-sdk \
+  nodejs \
+  npm \
+  lua-language-server \
+  bash-language-server \
+  yaml-language-server \
+  tree-sitter-cli \
+  vscode-json-languageserver \
+  marksman \
+  shellcheck
 
 # from the AUR (unreviewed upstream — keep this list short and deliberate)
 paru -S --needed --noconfirm \
@@ -123,4 +136,7 @@ paru -S --needed --noconfirm \
   bibata-cursor-theme-bin \
   ttf-amiri \
   hyprshade \
-  firefox-tridactyl-native
+  firefox-tridactyl-native \
+  netcoredbg \
+  jetbrains-toolbox \
+  visual-studio-code-bin

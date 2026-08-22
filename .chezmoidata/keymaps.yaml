@@ -1,0 +1,14 @@
+keymaps:
+  - { keys: "<ld>ff", desc: "find file",    nvim: "Snacks.picker.files()",      idea: "GotoFile",             vscode: "workbench.action.quickOpen" }
+  - { keys: "<ld>fg", desc: "live grep",    nvim: "Snacks.picker.grep()",       idea: "FindInPath",           vscode: "search.action.findInFiles" }
+  - { keys: "<ld>fr", desc: "recent files", nvim: "Snacks.picker.recent()",     idea: "RecentFiles",          vscode: "workbench.action.openPreviousRecentlyUsedEditor" }
+  - { keys: "<ld>ca", desc: "code action",  nvim: "vim.lsp.buf.code_action()",  idea: "ShowIntentionActions", vscode: "editor.action.quickFix", mode: "nx" }
+  - { keys: "<ld>rn", desc: "rename",       nvim: "vim.lsp.buf.rename()",       idea: "RenameElement",        vscode: "editor.action.rename" }
+  - { keys: "gd",     desc: "definition",   nvim: "vim.lsp.buf.definition()",   idea: "GotoDeclaration",      vscode: "editor.action.revealDefinition" }
+  - { keys: "gr",     desc: "references",   nvim: "Snacks.picker.lsp_references()", idea: "ShowUsages",       vscode: "editor.action.goToReferences" }
+  - { keys: "K",      desc: "hover",        nvim: "vim.lsp.buf.hover()",        idea: "QuickJavaDoc",         vscode: "editor.action.showHover" }
+  - { keys: "<ld>e",  desc: "file explorer",nvim: "require('oil').open()",      idea: "ActivateProjectToolWindow", vscode: "workbench.view.explorer" }
+  - { keys: "<ld>gg", desc: "git ui",       nvim: "Snacks.lazygit()",           idea: "Vcs.Show.Local.Changes", vscode: "workbench.view.scm" }
+  - { keys: "<ld>db", desc: "breakpoint",   nvim: "require('dap').toggle_breakpoint()", idea: "ToggleLineBreakpoint", vscode: "editor.debug.action.toggleBreakpoint" }
+  - { keys: "[d",     desc: "prev diagnostic", nvim: "vim.diagnostic.jump({count=-1})", idea: "GotoPreviousError", vscode: "editor.action.marker.prev" }
+  - { keys: "]d",     desc: "next diagnostic", nvim: "vim.diagnostic.jump({count=1})",  idea: "GotoNextError",     vscode: "editor.action.marker.next" }
