@@ -6,7 +6,7 @@ systemctl --user daemon-reload
 systemctl --user enable waybar.service swaync.service hypridle.service hyprsunset.service \
   cliphist.service hyprpolkitagent.service
 # ours (nothing ships these upstream)
-systemctl --user enable awww-daemon.service cliphist-image.service
+systemctl --user enable awww-daemon.service cliphist-image.service swayosd.service
 # satty won't create its output dir, and git can't carry an empty one
 
 # pass 2: our own watchers. graphical-session for the one that needs the compositor,

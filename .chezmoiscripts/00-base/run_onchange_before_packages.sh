@@ -109,7 +109,9 @@ sudo pacman -S --needed --noconfirm \
   rofi-calc \
   rofi-emoji \
   tesseract-data-ara \
-  plasma-meta
+  plasma-meta \
+  hyprsunset \
+  swayosd
 
 # from the AUR (unreviewed upstream — keep this list short and deliberate)
 paru -S --needed --noconfirm \

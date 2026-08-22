@@ -11,7 +11,7 @@
 
   "modules-left":   ["hyprland/workspaces", "hyprland/submap", "hyprland/window"],
   "modules-center": ["clock"],
-  "modules-right":  ["tray", "idle_inhibitor", "hyprland/language", "wireplumber", "network", "bluetooth", "battery"],
+  "modules-right":  ["tray", "custom/notification", "privacy", "idle_inhibitor", "hyprland/language", "wireplumber", "network", "bluetooth", "battery"],
 
   "hyprland/workspaces": { "format": "{id}", "on-click": "activate" },
   "hyprland/submap": { "format": " {}", "tooltip": false },   // never get stuck in a submap silently
@@ -49,5 +49,16 @@
     "format": "{icon} {capacity}%", "format-charging": "󰂄 {capacity}%",
     "format-icons": ["󰁺", "󰁼", "󰁾", "󰂀", "󰁹"]
   },
+  "custom/notification": {
+    "return-type": "json", "exec": "swaync-client -swb", "escape": true,
+    "format": "{icon}", "tooltip": true,
+    "format-icons": { "notification": "\uf0f3", "none": "\uf0f3",
+                      "dnd-notification": "\uf1f6", "dnd-none": "\uf1f6",
+                      "inhibited-notification": "\uf0f3", "inhibited-none": "\uf0f3",
+                      "dnd-inhibited-notification": "\uf1f6", "dnd-inhibited-none": "\uf1f6" },
+    "on-click": "swaync-client -t -sw", "on-click-right": "swaync-client -d -sw"
+  },
+  "privacy": { "icon-size": 13, "icon-spacing": 6,
+               "modules": [ { "type": "screenshare" }, { "type": "audio-in" } ] },
   "tray": { "spacing": 8 }
 }
