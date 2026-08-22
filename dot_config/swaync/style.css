@@ -3,19 +3,4 @@
    palette and upstream keeps owning all 561 lines of layout.
    swaync 0.12.6 is GTK4: the mechanism is :root / var(--name). The @define-color block in
    upstream's sheet is labelled "fallback for older CSS themes" and NOTHING reads it. */
-/* PASS 1 palette — theming.md swaps this block for: @import "colors.css"; */
-:root {
-  --cc-bg:               rgba(30, 30, 46, 0.92);
-  --noti-bg:             30, 30, 46;          /* bare r,g,b triplet, NOT a colour — upstream
-                                                 does rgba(var(--noti-bg), var(--noti-bg-alpha)) */
-  --noti-bg-alpha:       0.95;
-  --noti-bg-darker:      rgb(24, 24, 37);
-  --noti-bg-hover:       rgb(49, 50, 68);
-  --noti-bg-focus:       rgba(49, 50, 68, 0.6);
-  --noti-close-bg:       rgb(49, 50, 68);
-  --noti-close-bg-hover: rgb(137, 180, 250);
-  --noti-border-color:   rgb(137, 180, 250);
-  --text-color:          rgb(205, 214, 244);
-  --text-color-disabled: rgb(147, 153, 178);
-  --bg-selected:         rgb(137, 180, 250);
-}
+@import "colors.css";

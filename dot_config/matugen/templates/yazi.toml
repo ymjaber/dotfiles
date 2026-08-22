@@ -1,0 +1,6 @@
+[mgr]
+cwd = { fg = "{{colors.primary.default.hex}}" }
+hovered = { fg = "{{colors.surface.default.hex}}", bg = "{{colors.primary.default.hex}}" }
+[status]
+separator_open = ""
+separator_close = ""

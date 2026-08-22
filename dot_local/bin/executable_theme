@@ -1,0 +1,154 @@
+#!/bin/bash
+# theme ← dot_local/bin/executable_theme
+#   theme set <name|dynamic> · theme mode <light|dark|toggle> · theme toggle · theme list
+set -euo pipefail
+dir=~/.config/themes; cur=$dir/.current; mode=$dir/.mode; wall=$dir/.wallpaper
+# every render target's PARENT, created up front: `cat >` into a missing directory fails, and
+# under set -e that aborts mid-render leaving a half-themed desktop and a stale .current
+mkdir -p "$dir" ~/.config/{hypr,kitty,waybar,swaync,rofi,yazi} \
+         ~/.config/zellij/themes ~/.config/btop/themes ~/.config/qt6ct/colors ~/.cache
+[[ -f $mode ]] || echo dark > "$mode"
+exec 9>"$dir/.lock"; flock 9
+
+rgb() { printf '%d, %d, %d' 0x"${1:0:2}" 0x"${1:2:2}" 0x"${1:4:2}"; }   # swaync wants bare triplets
+
+# ⚠ NO eval. The old form was `eval "$(yq … | sed 's/^/c_/')"`, which executes a palette value:
+# a space, a `;` or a `$(…)` in any colour ran as a command. Names and values are validated,
+# then assigned with printf -v. yq auto-detects TOML from the extension; `-p toml -oy` fails.
+SLOTS=(bg bg_alt fg accent ok warn err muted border)
+
+load() {
+  local k v
+  for k in "${SLOTS[@]}"; do unset "c_$k"; done
+  while read -r k v; do
+    [[ " ${SLOTS[*]} " == *" $k "* ]] || { echo "theme: unknown key '$k' in $1" >&2; return 1; }
+    [[ $v =~ ^[0-9a-fA-F]{6}$ ]]      || { echo "theme: bad colour '$v' for '$k' in $1" >&2; return 1; }
+    printf -v "c_$k" '%s' "$v"
+  done < <(yq -r '.colors | to_entries | .[] | .key + " " + .value' "$1")
+  local miss=()
+  for k in "${SLOTS[@]}"; do [[ -v "c_$k" ]] || miss+=("$k"); done
+  (( ${#miss[@]} == 0 )) || { echo "theme: $1 is missing: ${miss[*]}" >&2; return 1; }
+}
+
+w() { local d=$1 t; t=$(mktemp "$d.XXXXXX") || return 1; cat > "$t"; chmod 644 "$t"; mv -f "$t" "$d"; }
+
+render() {
+  load "$1"
+  w ~/.config/hypr/theme.lua <<EOF
+hl.config({ general = { ["col.active_border"] = "rgb(${c_accent})",
+                        ["col.inactive_border"] = "rgb(${c_border})" } })
+EOF
+  printf 'foreground #%s\nbackground #%s\ncursor #%s\n' "$c_fg" "$c_bg" "$c_accent" \
+    | w ~/.config/kitty/theme.conf
+  # Waybar is GTK3 → @define-color / @name
+  printf '@define-color bg #%s;\n@define-color fg #%s;\n@define-color accent #%s;\n@define-color warn #%s;\n@define-color err #%s;\n' \
+    "$c_bg" "$c_fg" "$c_accent" "$c_warn" "$c_err" | w ~/.config/waybar/colors.css
+  # ⚠ swaync is GTK4 → :root / var(), and its OWN names. Teeing the Waybar file into both
+  # matched zero of swaync's variables: it parsed cleanly and recoloured nothing.
+  w ~/.config/swaync/colors.css <<EOF
+:root {
+  --cc-bg:               rgba($(rgb "$c_bg"), 0.92);
+  --noti-bg:             $(rgb "$c_bg");
+  --noti-bg-alpha:       0.95;
+  --noti-bg-darker:      #${c_bg_alt};
+  --noti-bg-hover:       #${c_border};
+  --noti-bg-focus:       rgba($(rgb "$c_border"), 0.6);
+  --noti-close-bg:       #${c_border};
+  --noti-close-bg-hover: #${c_accent};
+  --noti-border-color:   #${c_accent};
+  --text-color:          #${c_fg};
+  --text-color-disabled: #${c_muted};
+  --bg-selected:         #${c_accent};
+}
+EOF
+  w ~/.config/rofi/colors.rasi <<EOF
+* { bg: #${c_bg}; bg-alt: #${c_bg_alt}; fg: #${c_fg};
+    accent: #${c_accent}; muted: #${c_muted}; urgent: #${c_err}; }
+EOF
+  # ⚠ zellij KDL is NEWLINE-terminated — a one-liner with `;` makes zellij refuse its ENTIRE
+  # config. All eleven legacy colours are mandatory.
+  w ~/.config/zellij/themes/theme.kdl <<EOF
+themes {
+    theme {
+        fg "#${c_fg}"
+        bg "#${c_bg}"
+        black "#${c_bg_alt}"
+        red "#${c_err}"
+        green "#${c_ok}"
+        yellow "#${c_warn}"
+        blue "#${c_accent}"
+        magenta "#${c_accent}"
+        cyan "#${c_accent}"
+        white "#${c_fg}"
+        orange "#${c_warn}"
+    }
+}
+EOF
+  w ~/.config/yazi/theme.toml <<EOF
+[mgr]
+cwd = { fg = "#${c_accent}" }
+hovered = { fg = "#${c_bg}", bg = "#${c_accent}" }
+[status]
+separator_open = ""
+separator_close = ""
+EOF
+  printf 'theme[main_bg]="#%s"\ntheme[main_fg]="#%s"\ntheme[hi_fg]="#%s"\ntheme[selected_bg]="#%s"\ntheme[graph_text]="#%s"\n' \
+    "$c_bg" "$c_fg" "$c_accent" "$c_border" "$c_accent" | w ~/.config/btop/themes/theme.theme
+  w ~/.config/qt6ct/colors/theme.conf <<EOF
+[ColorScheme]
+active_colors=#${c_fg}, #${c_bg}, #${c_bg_alt}, #${c_muted}, #${c_bg_alt}, #${c_muted}, #${c_fg}, #${c_fg}, #${c_fg}, #${c_bg}, #${c_bg}, #${c_muted}, #${c_accent}, #${c_bg}, #${c_accent}, #${c_err}, #${c_bg_alt}, #${c_fg}, #${c_bg}, #${c_fg}, #${c_border}
+EOF
+  { printf '\e]11;#%s\a' "$c_bg"; printf '\e]10;#%s\a' "$c_fg"; printf '\e]12;#%s\a' "$c_accent"; } \
+    | w ~/.cache/theme-sequences
+  reload
+}
+
+reload() {
+  hyprctl reload -q 2>/dev/null || true
+  systemctl --user reload waybar.service 2>/dev/null || true   # ExecReload = kill -SIGUSR2 $MAINPID
+  swaync-client -rs 2>/dev/null || true
+  kitty @ --to unix:@kitty set-colors -a ~/.config/kitty/theme.conf 2>/dev/null || true
+  for p in /dev/pts/*; do [[ -w $p ]] && cat ~/.cache/theme-sequences > "$p" 2>/dev/null; done
+  return 0      # ⚠ the loop's last test is usually false; without this, reload() fails under set -e
+}
+
+case "${1:-}" in
+  set)
+    [[ ${2:-} ]] || { echo "usage: theme set <name|dynamic>" >&2; exit 2; }
+    if [[ $2 == dynamic ]]; then
+      [[ -s $wall ]] || { echo "theme: no wallpaper recorded — run 'wallpaper <img>' first" >&2; exit 1; }
+      m=$(cat "$mode"); w=$(cat "$wall")
+      matugen --source-color-index 0 -m "$m" image "$w"
+      # ⚠ matugen renders every fragment EXCEPT ~/.cache/theme-sequences — a template cannot
+      # carry the OSC control characters — so it is written here, from matugen's own JSON.
+      read -r d_bg d_fg d_acc < <(matugen --source-color-index 0 -m "$m" -j hex image "$w" 2>/dev/null \
+        | jq -r '[.colors.surface.default.color, .colors.on_surface.default.color,
+                  .colors.primary.default.color] | @tsv')
+      { printf '\e]11;%s\a' "$d_bg"; printf '\e]10;%s\a' "$d_fg"; printf '\e]12;%s\a' "$d_acc"; } \
+        | w ~/.cache/theme-sequences
+      echo dynamic > "$cur"
+      reload                    # ⚠ matugen writes the fragments; nothing signals the apps
+    else
+      [[ -f $dir/$2/palette.toml ]] || { echo "theme: no such theme '$2'" >&2; exit 1; }
+      render "$dir/$2/palette.toml"; echo "$2" > "$cur"
+      case "$2" in *-light) echo light > "$mode" ;; *-dark) echo dark > "$mode" ;; esac
+    fi ;;
+  mode)
+    case "${2:-}" in
+      light|dark) echo "$2" > "$mode" ;;
+      toggle)     if [[ $(cat "$mode") == dark ]]; then echo light > "$mode"; else echo dark > "$mode"; fi ;;
+      *) cat "$mode"; exit 0 ;;
+    esac
+    # ⚠ re-apply the CURRENT seed. Hardcoding catppuccin here silently destroyed any other
+    # seed — and `sun` calls this every 15 minutes.
+    c=$(cat "$cur" 2>/dev/null || echo catppuccin-dark)
+    if [[ $c == dynamic ]]; then exec "$0" set dynamic; fi
+    base=${c%-light}; base=${base%-dark}
+    if [[ $(cat "$mode") == light && -f $dir/$base-light/palette.toml ]]; then exec "$0" set "$base-light"
+    elif [[ $(cat "$mode") == dark && -f $dir/$base-dark/palette.toml ]]; then exec "$0" set "$base-dark"
+    else exec "$0" set "$c"; fi ;;
+  toggle) exec "$0" mode toggle ;;
+  list)   ls -1 "$dir" 2>/dev/null | grep -v '^\.' ;;
+  *) echo "usage: theme set <name|dynamic> | theme mode <light|dark|toggle> | theme toggle | theme list" >&2
+     exit 2 ;;
+esac

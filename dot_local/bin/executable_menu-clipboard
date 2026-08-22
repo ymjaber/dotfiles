@@ -1,3 +1,5 @@
 #!/bin/bash
 # menu-clipboard ← dot_local/bin/executable_menu-clipboard
-cliphist list | rofi -dmenu -p clip | cliphist decode | wl-copy
+sel=$(cliphist list | rofi -dmenu -p clip) || exit 0
+[[ $sel ]] || exit 0
+printf '%s\n' "$sel" | cliphist decode | wl-copy

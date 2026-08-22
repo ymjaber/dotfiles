@@ -1,4 +1,4 @@
-// deuteranopia.glsl — no green cones (the common one)
+// sim-deuteranopia.glsl — SIMULATES — no green cones (the common one)
 #version 300 es
 precision highp float;
 in vec2 v_texcoord;

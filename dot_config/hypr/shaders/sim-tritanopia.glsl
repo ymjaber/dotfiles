@@ -1,4 +1,4 @@
-// tritanopia.glsl — no blue cones
+// sim-tritanopia.glsl — SIMULATES — no blue cones
 #version 300 es
 precision highp float;
 in vec2 v_texcoord;

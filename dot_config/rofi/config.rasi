@@ -14,3 +14,4 @@ configuration {
   run-command: "uwsm app -- {cmd}";
   show-icons: true;
 }
+@theme "~/.config/rofi/theme.rasi"

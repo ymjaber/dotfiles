@@ -1,4 +1,4 @@
-// protanopia.glsl — no red cones
+// sim-protanopia.glsl — SIMULATES — no red cones
 #version 300 es
 precision highp float;
 in vec2 v_texcoord;

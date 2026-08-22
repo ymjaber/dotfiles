@@ -13,4 +13,6 @@ line=$(nmcli -t -f ACTIVE,SIGNAL,SECURITY,SSID dev wifi | sort -t: -k2 -rn \
   | rofi -dmenu -i -p wifi)
 ssid=${line%%$'\t'*}; [[ $ssid ]] || exit
 nmcli device wifi connect "$ssid" 2>/dev/null && exit
-pw=$(rofi -dmenu -password -p "password for $ssid"); nmcli device wifi connect "$ssid" password "$pw"
+pw=$(rofi -dmenu -password -p "password for $ssid") || exit 0
+[[ $pw ]] || exit 0
+nmcli device wifi connect "$ssid" password "$pw"

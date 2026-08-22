@@ -1,6 +1,6 @@
 #!/bin/bash
 # menu-filter ← dot_local/bin/executable_menu-filter  — screen shader (NOT blue-light; hyprsunset owns warmth)
-sel=$(printf 'off\ngrayscale\nprotanopia\ndeuteranopia\ntritanopia\noled-saver\ninvert' | rofi -dmenu -p filter)
+sel=$(printf 'off\ngrayscale\nsim-protanopia\nsim-deuteranopia\nsim-tritanopia\noled-saver\ninvert' | rofi -dmenu -p filter)
 [[ $sel ]] || exit
 # a plain if, NOT `A && B || C`: if `hyprshade off` ever returns non-zero, the || arm fires and
 # runs `hyprshade on off`, which cannot succeed — `off` is not a shader name

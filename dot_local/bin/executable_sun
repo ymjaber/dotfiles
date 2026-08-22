@@ -1,0 +1,91 @@
+#!/bin/bash
+# sun ← dot_local/bin/executable_sun  — adaptive light↔dark + night-light brain.
+#   sun apply · sun policy [auto|light|dark] · sun phase · sun coords · sun --status
+# Keyless: IP→coords, open-meteo→sun times. No geoclue.
+set -uo pipefail                       # ⚠ NOT -e: this runs from a timer and must fail OPEN
+C=~/.cache/sun; mkdir -p "$C"; P=$C/policy; [[ -f $P ]] || echo auto > "$P"
+T=$C/temp; [[ -f $T ]] || echo 4000 > "$T"   # warm endpoint, or `off`
+
+coords() {
+  # ⚠ the cache is validated and expired, not trusted forever: a 200 with no usable body used
+  # to be written once and returned for the life of the machine.
+  if [[ -s $C/coords ]] && [[ $(cat "$C/coords") =~ ^-?[0-9.]+,-?[0-9.]+$ ]] \
+     && [[ $(find "$C/coords" -mtime -30 2>/dev/null) ]]; then cat "$C/coords"; return; fi
+  local j ll
+  j=$(curl -sf --max-time 5 https://ipinfo.io/json) \
+    || j=$(curl -sf --max-time 5 https://ifconfig.co/json) || return 1
+  ll=$(jq -r '.loc // ((.latitude|tostring)+","+(.longitude|tostring))' <<<"$j" 2>/dev/null)
+  [[ $ll =~ ^-?[0-9.]+,-?[0-9.]+$ ]] || return 1
+  printf '%s\n' "$ll" | tee "$C/coords"
+}
+
+times() {
+  local f=$C/times-$(date +%F).json ll
+  if [[ ! -s $f ]]; then
+    ll=$(coords) || ll=""
+    [[ $ll ]] && curl -sf --max-time 5 -o "$f.tmp" \
+      "https://api.open-meteo.com/v1/forecast?latitude=${ll%,*}&longitude=${ll#*,}&daily=sunrise,sunset&timezone=auto&forecast_days=1" \
+      && mv "$f.tmp" "$f"
+  fi
+  # ⚠ yesterday's file is a fallback only while it is FRESH. The old code reached back
+  # arbitrarily far, so a laptop offline for a month used month-old times.
+  [[ -s $f ]] || f=$(find "$C" -name 'times-*.json' -mtime -3 2>/dev/null | sort | tail -1)
+  [[ -s ${f:-} ]] || return 1
+  jq -r '.daily | .sunrise[0], .sunset[0]' "$f" 2>/dev/null
+}
+
+phase() {
+  local t sr ss now
+  t=$(times) || { echo day; return; }          # fail safe = day: never a surprise dark screen
+
+  local sr_s ss_s; sr_s=$(sed -n 1p <<<"$t"); ss_s=$(sed -n 2p <<<"$t")
+  sr=$(date -d "today ${sr_s#*T}" +%s 2>/dev/null) || { echo day; return; }
+  ss=$(date -d "today ${ss_s#*T}" +%s 2>/dev/null) || { echo day; return; }
+
+  now=$(date +%s)
+  (( now >= sr && now < ss )) && echo day || echo night
+}
+
+apply() {
+  local pol want
+  pol=$(cat "$P")
+  case "$pol" in
+    light|dark) want=$pol ;;
+    *)          [[ $(phase) == day ]] && want=light || want=dark ;;
+  esac
+  theme mode "$want" || true                   # palette axis (theme re-applies the current seed)
+  # ⚠ an if, not `A && B || C`: with the && form a failing `identity` call fell through and
+  # warmed the screen instead. And hyprsunset may not be up yet on the boot tick.
+  local t; t=$(cat "$T" 2>/dev/null); [[ $t =~ ^[0-9]+$ ]] || t=off
+  if [[ $want == light || $t == off ]]; then hyprctl hyprsunset identity >/dev/null 2>&1
+  else hyprctl hyprsunset temperature "$t" >/dev/null 2>&1; fi
+  return 0                                     # Type=oneshot: never mark the unit failed
+}
+
+case "${1:-}" in
+  apply)    apply ;;
+  coords)   coords ;;
+  phase)    phase ;;
+  policy)   if [[ ${2:-} ]]; then
+              case "$2" in auto|light|dark) echo "$2" > "$P"; apply ;;
+                *) echo "sun: policy must be auto|light|dark" >&2; exit 2 ;; esac
+            else cat "$P"; fi ;;
+  temp)     if [[ ${2:-} ]]; then
+              t=$2
+              if [[ $t == toggle ]]; then
+                if [[ $(cat "$T") == off ]]; then
+                  t=$(cat "$C/temp.prev" 2>/dev/null); [[ $t =~ ^[0-9]+$ ]] || t=4000
+                else cp "$T" "$C/temp.prev"; t=off; fi
+              fi
+              if [[ $t == off ]] || { [[ $t =~ ^[0-9]+$ ]] && (( t >= 1000 && t <= 6500 )); }
+              then echo "$t" > "$T"; apply
+                   notify-send -a sun -t 2000 -h string:x-canonical-private-synchronous:sun \
+                     "Night-light" "$([[ $t == off ]] && echo off || echo "${t}K")" 2>/dev/null
+              else echo "sun: temp must be off, toggle, or 1000-6500 (K)" >&2; exit 2; fi
+            else cat "$T"; fi ;;
+  # ⚠ --status must never touch the network: waybar runs it on an interval.
+  --status) pol=$(cat "$P")
+            printf '{"text":"%s","class":"%s"}\n' \
+              "$([[ $pol == auto ]] && (times >/dev/null 2>&1 && phase || echo '?') || echo "$pol")" "$pol" ;;
+  *) echo "usage: sun apply|policy [auto|light|dark]|phase|coords|--status" >&2; exit 2 ;;
+esac

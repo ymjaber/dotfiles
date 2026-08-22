@@ -15,3 +15,4 @@ set_p() { [[ -e ~/.cache/game-mode ]] && return
   [[ $(tlpctl get 2>/dev/null) == "$want" ]] || tlpctl set "$want"; }
 set_p                                                    # reconcile at login, not only on transitions
 udevadm monitor -u -s power_supply 2>/dev/null | while read -r _; do set_p; done
+exit "${PIPESTATUS[0]}"

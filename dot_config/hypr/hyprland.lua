@@ -45,6 +45,7 @@ bind("SUPER + SHIFT + Escape", hl.dsp.exec_cmd("menu-power"),    { description =
 bind("SUPER + V",      hl.dsp.exec_cmd("menu-clipboard"),        { description = "clipboard history" })
 bind("SUPER + SHIFT + backslash", hl.dsp.exec_cmd("menu-filter"), { description = "screen filter (grayscale/colorblind/OLED)" })
 bind("SUPER + W",      hl.dsp.exec_cmd("menu-wifi"),             { description = "wifi" })
+bind("SUPER + SHIFT + N", hl.dsp.exec_cmd("sun temp toggle"), { description = "night-light toggle" })
 -- calc and emoji are rofi PLUGIN MODES, not scripts. They also appear as tabs inside SUPER+D.
 bind("SUPER + C",      hl.dsp.exec_cmd("rofi -show calc"),       { description = "calculator" })
 bind("SUPER + period", hl.dsp.exec_cmd("rofi -show emoji"),      { description = "emoji picker" })
@@ -104,7 +105,7 @@ wr({ name = "hide-xwayland-bridge", no_focus = true, opacity = 0.0,
 -- rules-table form returns ok and spawns NOTHING. Hyprland applies this at map time.
 -- ⚠ per-class: a second scratchpad (`scratch notes`) needs its own rule line.
 wr({ name = "scratch", float = true, size = "70% 55%", center = true,
-     match = { class = "^scratch-term$" } })
+     match = { class = "^scratch-.*$" } })
 -- ⚠ layer_rule has NO `rule` and NO top-level `namespace`: effects are named keys, and the
 -- namespace is a MATCH key. The Lua field is ignore_alpha, not the .conf-era "ignorealpha 0.5".
 for _, ns in ipairs({ "rofi", "bar", "control-center", "osd", "cheatsheet",

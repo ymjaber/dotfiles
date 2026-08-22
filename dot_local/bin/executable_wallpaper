@@ -1,0 +1,39 @@
+#!/bin/bash
+# wallpaper ← dot_local/bin/executable_wallpaper
+#   wallpaper <img> | wallpaper random | wallpaper menu | wallpaper current
+set -euo pipefail
+D=${WALLPAPER_DIR:-~/Pictures/Wallpapers}
+T=~/.cache/wallpaper/thumbs
+mkdir -p "$T" ~/.config/themes            # ⚠ .wallpaper's parent must exist before the write
+set_wall() {
+  [[ -f $1 ]] || { echo "wallpaper: no such file: $1" >&2; return 1; }
+  awww img "$1" --transition-type grow --transition-pos "$(hyprctl cursorpos | tr -d ' ')" \
+    2>/dev/null || awww img "$1"
+  echo "$1" > ~/.config/themes/.wallpaper
+  # ⚠ [0] takes the FIRST FRAME — without it an animated gif/webp makes magick emit
+  # lockwall-0.png, lockwall-1.png … and hyprlock's path never appears
+  magick "${1}[0]" -resize 10% -blur 0x6 -resize 1000% ~/.cache/lockwall.png 2>/dev/null || true
+  theme set dynamic                        # palette follows, in the current .mode
+}
+have_dir() { [[ -d $D ]] || { echo "wallpaper: $D does not exist (set WALLPAPER_DIR)" >&2; return 1; }; }
+case "${1:-menu}" in
+  current) cat ~/.config/themes/.wallpaper 2>/dev/null || { echo "wallpaper: none set" >&2; exit 1; } ;;
+  random)  have_dir
+    f=$(find -L "$D" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) | shuf -n1)
+    [[ $f ]] || { echo "wallpaper: no images in $D" >&2; exit 1; }
+    set_wall "$f" ;;
+  menu)    have_dir
+    pick=$(find -L "$D" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \) \
+      | sort | while IFS= read -r w; do
+        t=$T/$(sha1sum <<<"$w" | cut -c1-16).png
+
+        [[ -f $t ]] || magick "${w}[0]" -thumbnail 300x180^ -gravity center -extent 300x180 "$t" 2>/dev/null || true
+        if [[ -f $t ]]; then printf '%s\0icon\x1f%s\n' "$w" "$t"
+        else                 printf '%s\n' "$w"; fi
+
+      done | rofi -dmenu -i -p wallpaper -show-icons \
+        -theme-str 'listview{columns:4;lines:3;} element-icon{size:6em;}')
+    [[ ${pick:-} ]] && set_wall "$pick" ;;
+  -h|--help) echo "usage: wallpaper <img>|random|menu|current" ;;
+  *)       set_wall "$1" ;;
+esac

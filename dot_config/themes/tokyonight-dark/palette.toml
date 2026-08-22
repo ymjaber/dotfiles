@@ -1,0 +1,11 @@
+# dot_config/themes/tokyonight-dark/palette.toml
+[colors]
+bg     = "1a1b26"
+bg_alt = "16161e"
+fg     = "c0caf5"
+accent = "7aa2f7"
+ok     = "9ece6a"
+warn   = "e0af68"
+err    = "f7768e"
+muted  = "565f89"
+border = "292e42"

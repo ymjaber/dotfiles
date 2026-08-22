@@ -7,13 +7,16 @@ on(){ hyprctl eval 'hl.config({
                    active_opacity = 1.0, inactive_opacity = 1.0, fullscreen_opacity = 1.0 },
     general    = { gaps_in = 0, gaps_out = 0, border_size = 1, allow_tearing = true },
   })' >/dev/null
-  touch "$flag"
-  systemctl --user stop hypridle.service              # no idle dim/lock mid-match
-  tlpctl set performance 2>/dev/null                  # tlp-pd's CLI; ppd's is gone with the package
-  notify-send -a game-mode "game mode ON"; }
-off(){ rm -f "$flag"
-  hyprctl reload                                      # re-reads hyprland.lua = every value back
-  systemctl --user start hypridle.service
+  local rc=0 had=0
+  systemctl --user is-active --quiet hypridle.service && had=1
+  printf '%s\n' "$had" > "$flag"
+  systemctl --user stop hypridle.service || rc=1
+  tlpctl set performance 2>/dev/null || rc=1
+  (( rc )) && notify-send -u critical -a game-mode "game mode ON (partial — check journalctl)" \
+           || notify-send -a game-mode "game mode ON"; }
+off(){ local had; had=$(cat "$flag" 2>/dev/null || echo 1); rm -f "$flag"
+  hyprctl reload
+  [[ $had == 1 ]] && systemctl --user start hypridle.service
   tlpctl set balanced 2>/dev/null
   notify-send -a game-mode "game mode OFF"; }
 # ⚠ NOT `[[ -e $flag ]] && off || on`: off()'s last command is notify-send, which exits 1 when

@@ -2,7 +2,7 @@
   // height must be >= the modules' computed minimum (33 for this stylesheet: font-size 13
   // + the 0 10px paddings + tray icon metrics). 30 warned and was silently forced to 33;
   // omitting the key is worse — Waybar falls back to 20. Logical pixels, so scale-independent.
-  "layer": "top", "height": 30, "spacing": 6,
+  "layer": "top", "height": 33, "spacing": 6,
 
   // overlays append their module file here, e.g. "~/.config/waybar/modules/prayer.jsonc"
   // ⚠ comment stays OUTSIDE the brackets: jsoncpp reads a comment inside an array as
@@ -20,7 +20,7 @@
     "format": "{short}",
     "keyboard-name": "at-translated-set-2-keyboard"
   },
-  "idle_inhibitor": { "format": "{icon}", "format-icons": { "activated": "", "deactivated": "" },
+  "idle_inhibitor": { "format": "{icon}", "format-icons": { "activated": "", "deactivated": "" },
     "tooltip-format-activated": "caffeine on (idle inhibited)", "tooltip-format-deactivated": "caffeine off" },
   "hyprland/window": { "max-length": 60, "separate-outputs": true },
   "clock": {
@@ -29,8 +29,8 @@
     "on-click": "mode"                    // cycle month/year in the tooltip
   },
   "wireplumber": {
-    "format": "{icon} {volume}%", "format-muted": "muted",
-    "format-icons": ["", "", ""],
+    "format": "{icon} {volume}%", "format-muted": " muted",
+    "format-icons": ["", "", ""],
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
     "on-click-right": "uwsm app -- pwvucontrol"
   },
@@ -41,7 +41,7 @@
     "on-click": "uwsm app -- nm-connection-editor"
   },
   "bluetooth": {
-    "format": "", "format-off": "", "format-connected": " {num_connections}",
+    "format": "", "format-off": "", "format-connected": " {num_connections}",
     "on-click": "uwsm app -- blueman-manager"
   },
   "battery": {

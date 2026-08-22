@@ -49,5 +49,47 @@ fi
 _o=$(busctl --system list 2>/dev/null | awk '/^net\.hadess\.PowerProfiles/{print $6}')
 [[ $_o == tlp-pd.service ]] && ok "power profiles (tlp-pd)" || bad "PowerProfiles owned by ${_o:-nobody}, want tlp-pd.service"
 
+# ⚠ enabled is NOT running, and for a TIMER the gap can last until the next reboot
+_d=
+for _t in battery-notify.timer sun.timer; do
+  systemctl --user is-enabled -q "$_t" 2>/dev/null || continue
+  systemctl --user is-active  -q "$_t" 2>/dev/null || _d="$_d $_t"
+done
+[[ -z $_d ]] && ok "timers running" || bad "enabled but never started:$_d — systemctl --user enable --now$_d"
+
+# theming — a fragment nothing imports is a file, not a theme
+_t=$(cat ~/.config/themes/.current 2>/dev/null || echo none)
+[[ $_t != none ]] && ok "theme ($_t)" || bad "no theme applied — run: theme set catppuccin-dark"
+
+# every seam actually points at the fragment the CLI writes
+_s=0
+grep -q '@import "colors.css"' ~/.config/waybar/style.css 2>/dev/null || _s=$((_s+1))
+grep -q '@import "colors.css"' ~/.config/swaync/style.css 2>/dev/null || _s=$((_s+1))
+grep -q '@theme' ~/.config/rofi/config.rasi 2>/dev/null || _s=$((_s+1))
+grep -qE '^\s*theme "theme"' ~/.config/zellij/config.kdl 2>/dev/null || _s=$((_s+1))
+grep -qE '^\s*color_theme\s*=\s*"?theme' ~/.config/btop/btop.conf 2>/dev/null || _s=$((_s+1))
+(( _s == 0 )) && ok "theme seams" || bad "$_s theme fragment(s) written but never imported"
+
+# the cursor NAME, not just its size — Bibata was installed and selected nowhere for weeks
+[[ $(gsettings get org.gnome.desktop.interface cursor-theme 2>/dev/null) == *Bibata* ]] \
+  && ok "cursor theme" || bad "cursor-theme is not Bibata (gsettings)"
+
+# the one BEHAVIOUR seam — a security seam, so it is checked; the other two are recorded choices
+grep -qE '^\s*lock_cmd.*\block$' ~/.config/hypr/hypridle.conf 2>/dev/null \
+  && ok "idle-lock resets layout" || bad "hypridle calls hyprlock directly — a non-US layout locks you out"
+
+# GTK3's dark switch — unreachable from gsettings, so nothing else would catch it
+grep -qx 'gtk-application-prefer-dark-theme=1' ~/.config/gtk-3.0/settings.ini 2>/dev/null \
+  && ok "GTK3 dark" || bad "GTK3 apps render light — see theming.md § GTK/Qt/cursor 1b"
+
+# hybrid: the dGPU must be ASLEEP when nothing asked for it. nvidia-smi showing a low-watt P8
+# is NOT this — P8 is an awake idle state, D3cold is off. Reading sysfs does not wake it.
+_g=$(ls -d /sys/bus/pci/drivers/nvidia/0000:* 2>/dev/null | head -1)
+if [[ $_g && -r $_g/power/runtime_status ]]; then
+  _st=$(cat "$_g/power/runtime_status")
+  [[ $_st == suspended ]] && ok "dGPU asleep" \
+    || bad "dGPU is '$_st', want suspended — expected right after CUDA or a prime-run app, otherwise something holds it awake (desktop.md § env.tmpl)"
+fi
+
 exit ${fail:-0}
 
