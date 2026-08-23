@@ -1,0 +1,36 @@
+[user]
+    name = {{ .gitname }}
+    email = {{ .gitemail }}
+    signingkey = ~/.ssh/id_ed25519.pub
+[gpg]
+    format = ssh
+[commit]
+    gpgsign = true
+[gpg.ssh]
+    allowedSignersFile = ~/.config/git/allowed_signers
+[init]
+    defaultBranch = main
+[core]
+    pager = delta
+[delta]
+    navigate = true
+    side-by-side = true
+[merge]
+    conflictstyle = zdiff3
+[rebase]
+    autosquash = true
+[alias]
+    st = status -sb
+    lg = log --oneline --graph -20
+    fixup = commit --fixup
+{{ if eq .role "work" }}[includeIf "gitdir:~/code/clients/"]
+    path = ~/.config/git/client.inc
+{{ end }}
+
+# ── per-context identity, for when the directories exist ────────────────────────────────
+# Company work almost always MANDATES a corporate name and address — their compliance rule,
+# not a preference — and the failure is asymmetric: a client commit pushed under a personal
+# address, or the reverse, is permanent and occasionally contractual. gitdir: scoping means
+# it cannot happen by accident. Uncomment when the tree exists; the .inc holds only [user].
+# [includeIf "gitdir:~/work/"]
+#     path = ~/.config/git/work.inc

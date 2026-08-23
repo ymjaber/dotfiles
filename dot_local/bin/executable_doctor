@@ -102,5 +102,19 @@ if [[ $_r ]]; then
   [[ -z $_m ]] && ok "Rider vim plugins" || bad "Rider plugins missing:$_m — Settings → Plugins"
 fi
 
+# signing: the key file must exist AND this machine's pubkey must be in allowed_signers.
+# Signing and verifying fail separately — a commit signs fine while `git log --show-signature`
+# says "No signature" forever, because the verify side never saw the key.
+_sk=$(git config --global user.signingkey 2>/dev/null)
+_sk=${_sk/#\~/$HOME}
+[[ -r $_sk ]] && ok "signing key" || bad "signingkey unreadable: ${_sk:-unset}"
+_as=$(git config --global gpg.ssh.allowedSignersFile 2>/dev/null); _as=${_as/#\~/$HOME}
+if [[ -r $_as && -r $_sk ]]; then
+  grep -qF "$(awk '{print $2}' "$_sk")" "$_as" \
+    && ok "allowed_signers" || bad "this machine's pubkey is not in $_as — signatures will never verify"
+else
+  bad "allowed_signers unreadable: ${_as:-unset}"
+fi
+
 exit ${fail:-0}
 

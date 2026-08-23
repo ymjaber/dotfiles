@@ -1,3 +1,9 @@
-{{- $gpu := promptStringOnce . "gpu" "GPU (intel/amd/nvidia/hybrid)" -}}
+{{- $gpu   := promptStringOnce . "gpu"   "GPU (intel/amd/nvidia/hybrid)" -}}
+{{- $role  := promptStringOnce . "role"  "role (work/personal)" -}}
+{{- $gname := promptStringOnce . "gitname"  "git author name" -}}
+{{- $gmail := promptStringOnce . "gitemail" "git author email" -}}
 [data]
-    gpu = {{ $gpu | quote }}
+    gpu      = {{ $gpu   | quote }}
+    role     = {{ $role  | quote }}
+    gitname  = {{ $gname | quote }}
+    gitemail = {{ $gmail | quote }}

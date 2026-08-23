@@ -1,0 +1,6 @@
+Host *
+    AddKeysToAgent yes              # first use loads the key into the agent, once per boot
+    ServerAliveInterval 60
+    IdentitiesOnly yes              # offer only the configured key — no agent-spray at strange hosts
+
+Include config.d/*                  # OVERLAY HOOK — 11-server-management drops Host blocks here
