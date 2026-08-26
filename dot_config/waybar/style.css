@@ -2,7 +2,7 @@
 @import "colors.css";
 
 * { font-family: "JetBrainsMono Nerd Font", "Inter"; font-size: 13px; min-height: 0; }
-window#waybar { background: @bg; color: @fg; }
+window#waybar { background: alpha(@bg, 0.92); color: @fg; }
 #workspaces button { padding: 0 8px; color: @fg; background: transparent; }
 #workspaces button.active { color: @bg; background: @accent; border-radius: 6px; }
 #workspaces button.urgent { color: @bg; background: @err; border-radius: 6px; }

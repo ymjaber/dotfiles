@@ -2,7 +2,7 @@
 @import "colors.rasi"
 * { background-color: transparent; text-color: @fg;
     font: "JetBrainsMono Nerd Font 11"; }
-window   { width: 40%; background-color: @bg; border: 2px; border-color: @accent;
+window   { width: 40%; background-color: @bg-alpha; border: 2px; border-color: @accent;
            border-radius: 12px; padding: 8px; }
 mainbox  { children: [ inputbar, listview, mode-switcher ]; spacing: 8px; }
 inputbar { children: [ prompt, entry ]; background-color: @bg-alt;

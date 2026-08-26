@@ -12,6 +12,9 @@ exec 9>"$dir/.lock"; flock 9
 
 rgb() { printf '%d, %d, %d' 0x"${1:0:2}" 0x"${1:2:2}" 0x"${1:4:2}"; }   # swaync wants bare triplets
 
+ALPHA=0.92
+ALPHA_HEX=$(awk -v a="$ALPHA" 'BEGIN { printf "%02x", a * 255 + 0.5 }')
+
 # ⚠ NO eval. The old form was `eval "$(yq … | sed 's/^/c_/')"`, which executes a palette value:
 # a space, a `;` or a `$(…)` in any colour ran as a command. Names and values are validated,
 # then assigned with printf -v. yq auto-detects TOML from the extension; `-p toml -oy` fails.
@@ -38,7 +41,8 @@ render() {
 hl.config({ general = { ["col.active_border"] = "rgb(${c_accent})",
                         ["col.inactive_border"] = "rgb(${c_border})" } })
 EOF
-  printf 'foreground #%s\nbackground #%s\ncursor #%s\n' "$c_fg" "$c_bg" "$c_accent" \
+  printf 'foreground #%s\nbackground #%s\ncursor #%s\nbackground_opacity %s\n' \
+    "$c_fg" "$c_bg" "$c_accent" "$ALPHA" \
     | w ~/.config/kitty/theme.conf
   # Waybar is GTK3 → @define-color / @name
   printf '@define-color bg #%s;\n@define-color fg #%s;\n@define-color accent #%s;\n@define-color warn #%s;\n@define-color err #%s;\n' \
@@ -47,7 +51,7 @@ EOF
   # matched zero of swaync's variables: it parsed cleanly and recoloured nothing.
   w ~/.config/swaync/colors.css <<EOF
 :root {
-  --cc-bg:               rgba($(rgb "$c_bg"), 0.92);
+  --cc-bg:               rgba($(rgb "$c_bg"), ${ALPHA});
   --noti-bg:             $(rgb "$c_bg");
   --noti-bg-alpha:       0.95;
   --noti-bg-darker:      #${c_bg_alt};
@@ -63,6 +67,7 @@ EOF
 EOF
   w ~/.config/rofi/colors.rasi <<EOF
 * { bg: #${c_bg}; bg-alt: #${c_bg_alt}; fg: #${c_fg};
+    bg-alpha: #${c_bg}${ALPHA_HEX};
     accent: #${c_accent}; muted: #${c_muted}; urgent: #${c_err}; }
 EOF
   # ⚠ zellij KDL is NEWLINE-terminated — a one-liner with `;` makes zellij refuse its ENTIRE
