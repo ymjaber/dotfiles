@@ -12,7 +12,9 @@ exec 9>"$dir/.lock"; flock 9
 
 rgb() { printf '%d, %d, %d' 0x"${1:0:2}" 0x"${1:2:2}" 0x"${1:4:2}"; }   # swaync wants bare triplets
 
-ALPHA=0.92
+ALPHA_DARK=0.92
+ALPHA_LIGHT=0.75
+[[ $(cat "$mode" 2>/dev/null) == light ]] && ALPHA=$ALPHA_LIGHT || ALPHA=$ALPHA_DARK
 ALPHA_HEX=$(awk -v a="$ALPHA" 'BEGIN { printf "%02x", a * 255 + 0.5 }')
 
 # ⚠ NO eval. The old form was `eval "$(yq … | sed 's/^/c_/')"`, which executes a palette value:
@@ -134,8 +136,9 @@ case "${1:-}" in
       echo dynamic > "$cur"
       reload                    # ⚠ matugen writes the fragments; nothing signals the apps
     else
-      [[ -f $dir/$2/palette.toml ]] || { echo "theme: no such theme '$2'" >&2; exit 1; }
-      render "$dir/$2/palette.toml"; echo "$2" > "$cur"
+      m=$(cat "$mode")
+      [[ -f $dir/$2/$m.toml ]] || { echo "theme: no such theme '$2' (mode $m)" >&2; exit 1; }
+      render "$dir/$2/$m.toml"; echo "$2" > "$cur"
       case "$2" in *-light) echo light > "$mode" ;; *-dark) echo dark > "$mode" ;; esac
     fi ;;
   mode)
@@ -144,16 +147,10 @@ case "${1:-}" in
       toggle)     if [[ $(cat "$mode") == dark ]]; then echo light > "$mode"; else echo dark > "$mode"; fi ;;
       *) cat "$mode"; exit 0 ;;
     esac
-    # ⚠ re-apply the CURRENT seed. Hardcoding catppuccin here silently destroyed any other
-    # seed — and `sun` calls this every 15 minutes.
-    c=$(cat "$cur" 2>/dev/null || echo catppuccin-dark)
-    if [[ $c == dynamic ]]; then exec "$0" set dynamic; fi
-    base=${c%-light}; base=${base%-dark}
-    if [[ $(cat "$mode") == light && -f $dir/$base-light/palette.toml ]]; then exec "$0" set "$base-light"
-    elif [[ $(cat "$mode") == dark && -f $dir/$base-dark/palette.toml ]]; then exec "$0" set "$base-dark"
-    else exec "$0" set "$c"; fi ;;
+    # the family is unchanged by a mode flip — no suffix surgery, no counterpart probing
+    exec "$0" set "$(cat "$cur" 2>/dev/null || echo catppuccin)" ;;
   toggle) exec "$0" mode toggle ;;
-  list)   ls -1 "$dir" 2>/dev/null | grep -v '^\.' ;;
+  list)   { ls -1 "$dir" 2>/dev/null | grep -v '^\.'; echo dynamic; } ;;
   *) echo "usage: theme set <name|dynamic> | theme mode <light|dark|toggle> | theme toggle | theme list" >&2
      exit 2 ;;
 esac

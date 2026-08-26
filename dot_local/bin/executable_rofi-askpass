@@ -1,0 +1,7 @@
+#!/bin/bash
+# rofi-askpass ← dot_local/bin/executable_rofi-askpass
+# ⚠ ssh-keygen prefers SSH_ASKPASS over the tty whenever a display is set, and does NOT fall
+# back when the helper is missing — it fails, and git reports a wrong passphrase for one it
+# never asked for. ksshaskpass exists here only as a plasma-meta dependency; putting the git
+# signing path behind the fallback desktop is backwards.
+exec rofi -dmenu -password -p "${1:-passphrase}" < /dev/null

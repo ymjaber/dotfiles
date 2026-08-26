@@ -116,5 +116,8 @@ else
   bad "allowed_signers unreadable: ${_as:-unset}"
 fi
 
+grep -q '^background_opacity' ~/.config/kitty/theme.conf 2>/dev/null \
+  && ok "kitty opacity" || bad "kitty fragment has no background_opacity — matugen template drift?"
+
 exit ${fail:-0}
 

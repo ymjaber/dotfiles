@@ -13,7 +13,7 @@ set_wall() {
   # ⚠ [0] takes the FIRST FRAME — without it an animated gif/webp makes magick emit
   # lockwall-0.png, lockwall-1.png … and hyprlock's path never appears
   magick "${1}[0]" -resize 10% -blur 0x6 -resize 1000% ~/.cache/lockwall.png 2>/dev/null || true
-  theme set dynamic                        # palette follows, in the current .mode
+  [[ $(cat ~/.config/themes/.current 2>/dev/null) == dynamic ]] && theme set dynamic || true
 }
 have_dir() { [[ -d $D ]] || { echo "wallpaper: $D does not exist (set WALLPAPER_DIR)" >&2; return 1; }; }
 case "${1:-menu}" in

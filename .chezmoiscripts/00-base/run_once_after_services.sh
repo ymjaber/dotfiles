@@ -3,15 +3,18 @@ set -e
 # our two unit files land in the "after" phase, so systemd hasn't seen them yet
 systemctl --user daemon-reload
 # packaged units — Arch ships them all disabled; each is WantedBy=graphical-session.target
-systemctl --user enable waybar.service swaync.service hypridle.service hyprsunset.service \
+
+systemctl --user is-active --quiet graphical-session.target && _now=--now || _now=
+
+systemctl --user enable $_now waybar.service swaync.service hypridle.service hyprsunset.service \
   cliphist.service hyprpolkitagent.service
 # ours (nothing ships these upstream)
-systemctl --user enable awww-daemon.service cliphist-image.service swayosd.service
+systemctl --user enable $_now awww-daemon.service cliphist-image.service swayosd.service
 # satty won't create its output dir, and git can't carry an empty one
 
 # pass 2: our own watchers. graphical-session for the one that needs the compositor,
 # default.target for the two that must also work in a plain TTY login.
-systemctl --user enable monitor-watch.service power-profile-watch.service \
+systemctl --user enable $_now monitor-watch.service power-profile-watch.service \
   bt-audio-switch.service
 # --now for TIMERS only: timers.target activates once per `systemd --user` start and that
 # manager outlives logouts, so a plain enable waits for a reboot. Services are fine without
