@@ -26,11 +26,13 @@ _h=$(ls -1d ~/.config/yazi/plugins/*.yazi 2>/dev/null | wc -l)
 # desktop — the things `chezmoi apply` cannot put back, and the things that fail SILENTLY
 _d=
 for _u in waybar swaync hypridle hyprsunset cliphist hyprpolkitagent awww-daemon \
-          cliphist-image monitor-watch power-profile-watch bt-audio-switch; do
-  systemctl --user is-enabled -q "$_u.service" 2>/dev/null || _d="$_d $_u"
+          cliphist-image swayosd monitor-watch power-profile-watch bt-audio-switch; do
+  systemctl --user is-enabled -q "$_u.service" 2>/dev/null || { _d="$_d $_u(disabled)"; continue; }
+  systemctl --user is-active  -q "$_u.service" 2>/dev/null || _d="$_d $_u(stopped)"
 done
 systemctl --user is-enabled -q battery-notify.timer 2>/dev/null || _d="$_d battery-notify.timer"
-[[ -z $_d ]] && ok "session units" || bad "session units disabled:$_d"
+[[ -z $_d ]] && ok "session units" \
+  || bad "session units:$_d — 'systemctl --user start <unit>' now, and see § Session units for why"
 
 _s=$(hyprshade ls 2>/dev/null | wc -l)                       # 2 shipped + our 6
 (( _s == 8 )) && ok "screen shaders" || bad "screen shaders: $_s of 8"

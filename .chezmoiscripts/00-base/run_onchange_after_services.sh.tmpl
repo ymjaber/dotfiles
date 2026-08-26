@@ -4,6 +4,7 @@ set -e
 systemctl --user daemon-reload
 # packaged units — Arch ships them all disabled; each is WantedBy=graphical-session.target
 
+# unit state: {{ output "sh" "-c" "systemctl --user is-active graphical-session.target waybar.service swaync.service hypridle.service hyprsunset.service cliphist.service hyprpolkitagent.service awww-daemon.service cliphist-image.service swayosd.service monitor-watch.service power-profile-watch.service bt-audio-switch.service 2>/dev/null | tr '\n' ' '; true" }}
 systemctl --user is-active --quiet graphical-session.target && _now=--now || _now=
 
 systemctl --user enable $_now waybar.service swaync.service hypridle.service hyprsunset.service \
