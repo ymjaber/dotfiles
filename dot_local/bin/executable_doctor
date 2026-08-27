@@ -26,17 +26,20 @@ _h=$(ls -1d ~/.config/yazi/plugins/*.yazi 2>/dev/null | wc -l)
 # desktop — the things `chezmoi apply` cannot put back, and the things that fail SILENTLY
 _d=
 _sess=; systemctl --user is-active -q graphical-session.target 2>/dev/null && _sess=1
+_comp=; pgrep -x -u "$UID" Hyprland >/dev/null 2>&1 && _comp=1
 for _u in waybar swaync hypridle hyprsunset cliphist hyprpolkitagent awww-daemon \
           cliphist-image swayosd monitor-watch power-profile-watch bt-audio-switch; do
   systemctl --user is-enabled -q "$_u.service" 2>/dev/null || { _d="$_d $_u(disabled)"; continue; }
-  [[ -n $_sess ]] || continue        # no session: not started is correct, not broken
+  [[ -n $_sess ]] || continue        # no target: judged by the branch below, not per-unit
   systemctl --user is-active  -q "$_u.service" 2>/dev/null || _d="$_d $_u(stopped)"
 done
 systemctl --user is-enabled -q battery-notify.timer 2>/dev/null || _d="$_d battery-notify.timer"
-if [[ -n $_d ]]; then
+if [[ -n $_comp && -z $_sess ]]; then
+  bad "Hyprland runs but graphical-session.target is DEAD — this session did not come from uwsm, so NO session-scoped unit can start (it also kills the compositor PATH and AQ_DRM_DEVICES). Log in via 'uwsm start hyprland-uwsm.desktop'; see setup/05-desktop § greetd.${_d:+ Also:$_d}"
+elif [[ -n $_d ]]; then
   bad "session units:$_d — 'systemctl --user start <unit>' now, and see § Session units for why"
 elif [[ -z $_sess ]]; then
-  ok "session units (enabled; no graphical session, so stopped is correct)"
+  ok "session units (enabled; no compositor running, so stopped is correct)"
 else
   ok "session units"
 fi
