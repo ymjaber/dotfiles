@@ -35,7 +35,7 @@ if pgrep -x -u "$UID" Hyprland >/dev/null 2>&1; then
     pgrep -f -u "$UID" -- "$_f" >/dev/null 2>&1 || _d="$_d ${_f// /_}"
   done
   [[ -z $_d ]] && ok "autostart" \
-    || bad "autostart not running:$_d — start by hand (e.g. 'waybar &') or re-login; reload does NOT re-fire hyprland.start"
+    || bad "autostart not running:$_d — run it in a TERMINAL to see why (exec_cmd children leave no stderr in the journal); re-login respawns; reload does NOT"
 else
   ok "autostart (no compositor, so nothing running is correct)"
 fi

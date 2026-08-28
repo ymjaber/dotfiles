@@ -14,4 +14,4 @@ export XDG_BACKEND=wayland
 [ -r "$HOME/.config/hypr/env" ]          && . "$HOME/.config/hypr/env"
 [ -r "$HOME/.config/hypr/env-hyprland" ] && . "$HOME/.config/hypr/env-hyprland"
 
-exec Hyprland "$@"
+exec start-hyprland "$@"
