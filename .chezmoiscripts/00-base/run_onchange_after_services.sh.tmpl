@@ -19,7 +19,7 @@ set -e
 # ⚠ `disable` is idempotent and succeeds on an already-disabled unit, but NOT on one systemd
 # has never heard of — hence `--quiet` plus the `|| true`, so a machine that never had these
 # does not die here on `set -e`.
-# unit state: {{ output "sh" "-c" "systemctl --user is-enabled waybar.service swaync.service hypridle.service hyprsunset.service cliphist.service hyprpolkitagent.service awww-daemon.service cliphist-image.service swayosd.service monitor-watch.service power-profile-watch.service bt-audio-switch.service sun.timer battery-notify.timer drkonqi-coredump-launcher.socket 2>/dev/null | tr '\n' ' '; true" }}
+# unit state: {{ output "sh" "-c" "systemctl --user is-enabled waybar.service swaync.service hypridle.service hyprsunset.service cliphist.service hyprpolkitagent.service awww-daemon.service cliphist-image.service swayosd.service monitor-watch.service power-profile-watch.service bt-audio-switch.service sun.timer battery-notify.timer drkonqi-coredump-launcher.socket ssh-agent.socket gcr-ssh-agent.socket 2>/dev/null | tr '\n' ' '; true" }}
 systemctl --user daemon-reload
 
 # retired: spawned by hyprland.lua § autostart, must not be target-activated as well
@@ -33,6 +33,13 @@ systemctl --user disable --quiet --now \
 # one, it aborts, and that abort is itself a coredump (3 became 16, 2026-08-27) plus an "N failed
 # units" toast. Mask the socket. Cost: no crash dialogs in the KDE lifeboat; `coredumpctl` remains.
 systemctl --user mask --quiet --now drkonqi-coredump-launcher.socket 2>/dev/null || true
+
+# ssh-agent: openssh ships the socket+service pair; enabling is PER USER, and setup/04 §4.1 does it
+# once, for the user who walked setup. A second account on the same machine got every other unit
+# and not this one — SSH_AUTH_SOCK pointing at a socket nobody listens on (2026-08-28). gcr's
+# agent is masked for the same per-user reason (04 §gnome-keyring).
+systemctl --user enable --now ssh-agent.socket
+systemctl --user mask --quiet --now gcr-ssh-agent.socket gcr-ssh-agent.service 2>/dev/null || true
 
 # ⚠ CLOCK-scoped, so these stay units — they must fire with no compositor at all.
 # --now for TIMERS specifically: timers.target activates once per `systemd --user` start, and

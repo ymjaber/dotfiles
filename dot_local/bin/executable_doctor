@@ -112,7 +112,7 @@ _g=$(ls -d /sys/bus/pci/drivers/nvidia/0000:* 2>/dev/null | head -1)
 if [[ $_g && -r $_g/power/runtime_status ]]; then
   _st=$(cat "$_g/power/runtime_status")
   [[ $_st == suspended ]] && ok "dGPU asleep" \
-    || bad "dGPU is '$_st', want suspended — expected right after CUDA or a prime-run app, otherwise something holds it awake (desktop.md § env.tmpl)"
+    || bad "dGPU is '$_st', want suspended — expected within a minute of login (every GL client enumerates both GPUs) or right after CUDA or a prime-run app; otherwise something holds it awake (desktop.md § env.tmpl)"
 fi
 
 # `set which-key easymotion` in ~/.ideavimrc is a SILENT no-op without the plugins, and

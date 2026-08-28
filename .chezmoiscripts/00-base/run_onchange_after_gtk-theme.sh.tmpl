@@ -1,0 +1,14 @@
+#!/bin/bash
+set -e
+# gsettings state: {{ output "sh" "-c" "for k in gtk-theme color-scheme icon-theme cursor-theme cursor-size; do gsettings get org.gnome.desktop.interface $k; done 2>/dev/null | tr '\n' ' '; true" }}
+gsettings set org.gnome.desktop.interface gtk-theme     'Adwaita-dark'
+gsettings set org.gnome.desktop.interface color-scheme  'prefer-dark'
+gsettings set org.gnome.desktop.interface icon-theme    'Papirus-Dark'
+gsettings set org.gnome.desktop.interface cursor-theme  'Bibata-Modern-Classic'
+gsettings set org.gnome.desktop.interface cursor-size   24
+# ⚠ `gsettings set` exits 0 even when dconf cannot commit. With no session bus — a `su -` shell,
+# an apply from a bare TTY — it prints a warning and writes to a memory backend, and `set -e`
+# never notices. That is how a second account "ran" this script and kept the Adwaita cursor.
+# Read one value back and fail loudly, so `chezmoi apply` fails instead of lying.
+[[ $(gsettings get org.gnome.desktop.interface cursor-theme 2>/dev/null) == *Bibata* ]] \
+  || { echo "gtk-theme: gsettings did not persist — no session bus? (XDG_RUNTIME_DIR=$XDG_RUNTIME_DIR)" >&2; exit 1; }
