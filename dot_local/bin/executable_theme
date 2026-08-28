@@ -112,7 +112,7 @@ EOF
 
 reload() {
   hyprctl reload -q 2>/dev/null || true
-  systemctl --user reload waybar.service 2>/dev/null || true   # ExecReload = kill -SIGUSR2 $MAINPID
+  pkill -SIGUSR2 -x -u "$(id -u)" waybar 2>/dev/null || true   # waybar is a plain process now; SIGUSR2 is what the unit's ExecReload sent
   swaync-client -rs 2>/dev/null || true
   kitty @ --to unix:@kitty set-colors -a ~/.config/kitty/theme.conf 2>/dev/null || true
   for p in /dev/pts/*; do [[ -w $p ]] && cat ~/.cache/theme-sequences > "$p" 2>/dev/null; done
