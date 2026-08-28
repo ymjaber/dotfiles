@@ -58,7 +58,7 @@ sudo pacman -S --needed --noconfirm \
   hyprpolkitagent \
   qt5-wayland \
   qt6-wayland \
-  uwsm \
+  hyprshutdown \
   greetd \
   greetd-tuigreet \
   waybar \

@@ -3,7 +3,7 @@
 c=$(printf 'lock\nlogout\nsuspend\nhibernate\nreboot\npoweroff' | rofi -dmenu -p power)
 case "$c" in
   lock) lock ;;
-  logout) uwsm stop ;;                          # NEVER hyprctl dispatch exit under uwsm
+  logout) command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()' ;;   # shipped-example form; hyprshutdown closes apps first
   suspend) systemctl suspend ;;                 # hypridle's delay-inhibitor locks first
   hibernate) systemctl hibernate ;;             # the 3.2 sleep hook handles Data/ESP unmounts
   reboot|poweroff) [[ $(printf 'no\nyes' | rofi -dmenu -p "really $c?") == yes ]] && systemctl "$c" ;;

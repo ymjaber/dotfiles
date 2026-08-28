@@ -25,13 +25,13 @@ pcall(dofile, H .. "theme.lua")
 -- SECTION binds — THIS BLOCK IS THE KEYBINDING TABLE. Every bind carries a description, which
 -- `hyprctl binds -j` reads back; that is what feeds the cheatsheet in pass 2.
 local bind = hl.bind
--- GUI apps go through `uwsm app` so each lands in its own scope in app-graphical.slice
--- instead of accumulating inside the compositor's own unit.
-bind("SUPER + Return", hl.dsp.exec_cmd("uwsm app -- kitty"),         { description = "terminal" })
+-- Plain exec: uwsm is gone (2026-08-27) and with it the app wrapper. Per-app scopes bought nothing here —
+-- `oomctl` manages 0 cgroups on this machine, so oomd had no targets either way (see setup/04).
+bind("SUPER + Return", hl.dsp.exec_cmd("kitty"),         { description = "terminal" })
 bind("SUPER + D",      hl.dsp.exec_cmd("rofi -show drun"),       { description = "launcher" })  -- drun, NOT combi
 bind("SUPER + Q",      hl.dsp.window.close(),                        { description = "close window" })
-bind("SUPER + E",      hl.dsp.exec_cmd("uwsm app -- kitty -e yazi"), { description = "files" })
-bind("SUPER + B",      hl.dsp.exec_cmd("uwsm app -- firefox"),   { description = "browser" })
+bind("SUPER + E",      hl.dsp.exec_cmd("kitty -e yazi"), { description = "files" })
+bind("SUPER + B",      hl.dsp.exec_cmd("firefox"),   { description = "browser" })
 bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("grimblast --freeze save area - | satty -f -"),
                                                                      { description = "region shot → annotate" })
 bind("SUPER + P",      hl.dsp.exec_cmd("hyprpicker -a"),             { description = "color picker" })
@@ -77,7 +77,7 @@ for i = 1, 9 do
 end
 -- hardware keys: locked = still work on the lockscreen; repeating = hold-to-repeat
 -- -l 1.0 caps at 100%: without it a held key drives PipeWire gain past unity into clipping
-bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("swayosd-client --output-volume raise --max-volume 100"), { locked = true, repeating = true })
+bind("XF86AudioRaiseVolume", hl.dsp.exec_cmd("swayosd-client --output-volume raise --max-volume 150"), { locked = true, repeating = true })
 bind("XF86AudioLowerVolume", hl.dsp.exec_cmd("swayosd-client --output-volume lower"), { locked = true, repeating = true })
 bind("XF86AudioMute",        hl.dsp.exec_cmd("swayosd-client --output-volume mute-toggle"), { locked = true })
 bind("XF86AudioMicMute",     hl.dsp.exec_cmd("swayosd-client --input-volume mute-toggle"), { locked = true })
@@ -87,7 +87,7 @@ bind("XF86MonBrightnessDown",hl.dsp.exec_cmd("swayosd-client --brightness lower"
 bind("SUPER + N", hl.dsp.exec_cmd("swaync-client -t -sw"), { description = "notification centre" })
 
 -- LAW: never do blocking work inside a bind *function* — exec_cmd runs outside the event loop.
--- The exit() dispatcher is banned under uwsm; menu-power uses `uwsm stop` (pass 2).
+-- Exit goes through menu-power: hyprshutdown if installed (closes apps gracefully first), else hl.dsp.exit().
 
 -- SECTION rules — float applets, auto-PiP, dim modal choosers, keep video awake, hide the
 -- screenshare bridge, and blur behind our own layer-shell surfaces.
@@ -143,6 +143,63 @@ hl.on("keybinds.submap", function(name)
   name = name or ""
   local hints = { resize = "hjkl resize · esc done", pass = "all keys → app · SUPER+SHIFT+P exits" }
   if hints[name] then hl.exec_cmd("notify-send -t 2500 -a hypr '" .. name .. " mode' '" .. hints[name] .. "'") end
+end)
+
+-- SECTION autostart — RESTORED 2026-08-27 (see § Why `exec-once` and not units).
+-- ⚠⚠ The exec-once mechanism is the `hyprland.start` EVENT, not a function. The shipped example
+-- (/usr/share/hypr/hyprland.lua:45) does autostart exactly this way. A TOP-LEVEL hl.exec_cmd is
+-- not once: this file re-executes on every `hyprctl reload` (which game-mode calls), and a bare
+-- exec_cmd appending to a file gave one line per reload — 1 → 2 → 3, measured 2026-08-27. Inside
+-- the start handler it fires once per compositor start and never on reload (verified against the
+-- v0.56.2 source: emitted once behind a static guard; reload emits only config.reloaded).
+hl.on("hyprland.start", function()
+  -- ⚠⚠ ONE chained command, because exec_cmd is async and the ORDER is the whole point:
+  --  1. import the session env into D-Bus and systemd. xdg-desktop-portal and every other
+  --     D-Bus/systemd-activated service is NOT a child of the compositor and inherits nothing
+  --     from it; uwsm used to do this import. Without it: no screenshare, no file pickers.
+  --  2. THEN start, through their UNITS, the daemons that ship D-Bus activation files.
+  --     LAW: if /usr/share/dbus-1/services/*.service names `SystemdService=X`, start X and
+  --     never exec the binary — D-Bus starts X the moment anyone calls the bus name, and the
+  --     two instances race. Measured 2026-08-27: "An instance of SwayNotificationCenter is
+  --     already running!" ×5 → start-limit-hit → one "Failed unit" toast, three "recovered".
+  --     `disable` does NOT prevent activation. Starting the unit makes systemd the single
+  --     owner, keeps Restart=on-failure and ExecReload, and stays KDE-safe because the units
+  --     are disabled from the target. Step 1 is what hands them WAYLAND_DISPLAY. None of the
+  --     three has Requisite=, so this works with graphical-session.target inactive.
+  --     swaync (two names) · hyprpolkitagent (which also has NO binary on PATH — its unit knows
+  --     the path) · blueman-applet. Find yours: grep -l SystemdService /usr/share/dbus-1/services/*
+  hl.exec_cmd("dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE HYPRLAND_INSTANCE_SIGNATURE && systemctl --user start swaync.service hyprpolkitagent.service blueman-applet.service")
+
+  -- everything below ships no D-Bus activation, so a plain exec has no one to race
+  for _, c in ipairs({
+    "waybar", "hypridle", "hyprsunset", "swayosd-server",
+    "wl-paste --type text  --watch cliphist store",
+    "wl-paste --type image --watch cliphist store",
+    "monitor-watch", "power-profile-watch", "bt-audio-switch",
+    -- ⚠ XDG autostart is NOT run for us any more — uwsm's wayland-session-xdg-autostart@ target
+    -- was what started these. Dropping uwsm REVERSES the 2026-08-16 finding that deleted
+    -- nm-applet from this list as a duplicate. It is no longer a duplicate.
+    "nm-applet --indicator", "jetbrains-toolbox --minimize", "limine-snapper-notify",
+  }) do hl.exec_cmd(c) end
+
+  -- ⚠ the one ordering dependency: `wallpaper` talks to awww-daemon over its socket. Racing them
+  -- means no wallpaper whenever `wallpaper` wins. Chain, don't race.
+  hl.exec_cmd("sh -c 'awww-daemon & until awww query >/dev/null 2>&1; do sleep 0.1; done; wallpaper'")
+end)
+
+-- SECTION shutdown — the teardown that exec-once does not give for free.
+-- When the compositor exits, every client we exec'd loses its socket mid-call. Measured
+-- 2026-08-27: awww-daemon and hyprsunset died by SIGABRT and the portal by SIGSEGV in the same
+-- second as the logout — three coredumps, which drkonqi turned into sixteen and a "18 failed
+-- units" toast. Units had PartOf=graphical-session.target for this; we send SIGTERM first
+-- instead. Wiki: the event is "emitted once before Hyprland exiting". The spawn is async, so
+-- verify after a logout: `coredumpctl list --since -5min` should be empty.
+-- ⚠ pkill/pgrep -x compare against comm, which is 15 characters — power-profile-watch is
+-- "power-profile-w" there and never matches. The bash watchers are matched on their path with -f.
+hl.on("hyprland.shutdown", function()
+  hl.exec_cmd("systemctl --user stop swaync.service hyprpolkitagent.service blueman-applet.service xdg-desktop-portal-hyprland.service; "
+    .. "pkill -x -u \"$(id -u)\" 'waybar|hypridle|hyprsunset|swayosd-server|awww-daemon|nm-applet|wl-paste'; "
+    .. "pkill -f -u \"$(id -u)\" -- 'bin/(monitor-watch|power-profile-watch|bt-audio-switch|limine-snapper-notify)$|jetbrains-toolbox'")
 end)
 
 -- OVERLAY MANIFEST — use-case folders append ONE line each; nothing else in base changes.

@@ -25,24 +25,31 @@ _h=$(ls -1d ~/.config/yazi/plugins/*.yazi 2>/dev/null | wc -l)
 
 # desktop — the things `chezmoi apply` cannot put back, and the things that fail SILENTLY
 _d=
-_sess=; systemctl --user is-active -q graphical-session.target 2>/dev/null && _sess=1
-_comp=; pgrep -x -u "$UID" Hyprland >/dev/null 2>&1 && _comp=1
+if pgrep -x -u "$UID" Hyprland >/dev/null 2>&1; then
+  for _n in waybar swaync hypridle hyprsunset hyprpolkitagent swayosd-server awww-daemon \
+            nm-applet blueman-applet; do
+    pgrep -x -u "$UID" "$_n" >/dev/null 2>&1 || _d="$_d $_n"
+  done
+  # these have no distinct process NAME — wl-paste is wl-paste, the watchers are shell scripts
+  for _f in "cliphist store" monitor-watch power-profile-watch bt-audio-switch; do
+    pgrep -f -u "$UID" -- "$_f" >/dev/null 2>&1 || _d="$_d ${_f// /_}"
+  done
+  [[ -z $_d ]] && ok "autostart" \
+    || bad "autostart not running:$_d — start by hand (e.g. 'waybar &') or re-login; reload does NOT re-fire hyprland.start"
+else
+  ok "autostart (no compositor, so nothing running is correct)"
+fi
+
+# ⚠⚠ the RETIRED design must stay retired. Every one of these was enabled as a unit before
+# 2026-08-27, and deleting the enable step does not disable anything. Left enabled, each daemon
+# starts twice under Hyprland (target + hyprland.start) and leaks into the KDE lifeboat.
+_e=
 for _u in waybar swaync hypridle hyprsunset cliphist hyprpolkitagent awww-daemon \
           cliphist-image swayosd monitor-watch power-profile-watch bt-audio-switch; do
-  systemctl --user is-enabled -q "$_u.service" 2>/dev/null || { _d="$_d $_u(disabled)"; continue; }
-  [[ -n $_sess ]] || continue        # no target: judged by the branch below, not per-unit
-  systemctl --user is-active  -q "$_u.service" 2>/dev/null || _d="$_d $_u(stopped)"
+  systemctl --user is-enabled -q "$_u.service" 2>/dev/null && _e="$_e $_u"
 done
-systemctl --user is-enabled -q battery-notify.timer 2>/dev/null || _d="$_d battery-notify.timer"
-if [[ -n $_comp && -z $_sess ]]; then
-  bad "Hyprland runs but graphical-session.target is DEAD — this session did not come from uwsm, so NO session-scoped unit can start (it also kills the compositor PATH and AQ_DRM_DEVICES). Log in via 'uwsm start hyprland-uwsm.desktop'; see setup/05-desktop § greetd.${_d:+ Also:$_d}"
-elif [[ -n $_d ]]; then
-  bad "session units:$_d — 'systemctl --user start <unit>' now, and see § Session units for why"
-elif [[ -z $_sess ]]; then
-  ok "session units (enabled; no compositor running, so stopped is correct)"
-else
-  ok "session units"
-fi
+[[ -z $_e ]] && ok "no stale session units" \
+  || bad "STILL ENABLED as units:$_e — double-starts under Hyprland and runs inside KDE; chezmoi apply"
 
 _s=$(hyprshade ls 2>/dev/null | wc -l)                       # 2 shipped + our 6
 (( _s == 8 )) && ok "screen shaders" || bad "screen shaders: $_s of 8"

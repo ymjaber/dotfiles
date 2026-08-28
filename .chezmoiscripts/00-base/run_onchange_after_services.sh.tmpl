@@ -1,30 +1,45 @@
 #!/bin/bash
 set -e
-# our two unit files land in the "after" phase, so systemd hasn't seen them yet
+# ⚠⚠ `run_onchange_after_services.sh.tmpl` — the `.tmpl` is load-bearing. `run_once_` is keyed
+# by the script's own content hash, so it reconciles when the SCRIPT changes and never when the
+# MACHINE drifts. The `# unit state:` line below is the hash input: `output` runs at render
+# time, so the recorded hash moves exactly when a unit's state moves. `; true` is required —
+# `is-active` exits non-zero when anything is down, which would fail the whole render.
+#
+# ⚠⚠⚠ THIS SCRIPT NOW MOSTLY *DISABLES*. Read that twice before editing it.
+# Until 2026-08-27 every daemon here was enabled as a systemd unit. Two defects killed that:
+#   1. WantedBy=graphical-session.target means ANY graphical session — plasma-workspace.target
+#      Wants that target, so the KDE lifeboat started waybar and friends inside Plasma.
+#   2. Only uwsm activates that target, so a plain `Hyprland` login started nothing.
+# They are spawned from hyprland.lua now (§ autostart). But deleting an `enable` does NOT undo
+# one: the symlinks written by every previous apply are still there, and a machine upgrading
+# across this change would start each daemon TWICE — once from the target, once from
+# spawn-once — while KDE kept starting them too. Declarative config describes what should
+# exist and never what should stop existing, so the un-enable has to be written by hand.
+# ⚠ `disable` is idempotent and succeeds on an already-disabled unit, but NOT on one systemd
+# has never heard of — hence `--quiet` plus the `|| true`, so a machine that never had these
+# does not die here on `set -e`.
+# unit state: {{ output "sh" "-c" "systemctl --user is-enabled waybar.service swaync.service hypridle.service hyprsunset.service cliphist.service hyprpolkitagent.service awww-daemon.service cliphist-image.service swayosd.service monitor-watch.service power-profile-watch.service bt-audio-switch.service sun.timer battery-notify.timer drkonqi-coredump-launcher.socket 2>/dev/null | tr '\n' ' '; true" }}
 systemctl --user daemon-reload
-# packaged units — Arch ships them all disabled; each is WantedBy=graphical-session.target
 
-# unit state: {{ output "sh" "-c" "systemctl --user is-active graphical-session.target waybar.service swaync.service hypridle.service hyprsunset.service cliphist.service hyprpolkitagent.service awww-daemon.service cliphist-image.service swayosd.service monitor-watch.service power-profile-watch.service bt-audio-switch.service 2>/dev/null | tr '\n' ' '; true" }}
-systemctl --user is-active --quiet graphical-session.target && _now=--now || _now=
+# retired: spawned by hyprland.lua § autostart, must not be target-activated as well
+systemctl --user disable --quiet --now \
+  waybar.service swaync.service hypridle.service hyprsunset.service cliphist.service \
+  hyprpolkitagent.service awww-daemon.service cliphist-image.service swayosd.service \
+  monitor-watch.service power-profile-watch.service bt-audio-switch.service 2>/dev/null || true
 
-systemctl --user enable $_now waybar.service swaync.service hypridle.service hyprsunset.service \
-  cliphist.service hyprpolkitagent.service
-# ours (nothing ships these upstream)
-systemctl --user enable $_now awww-daemon.service cliphist-image.service swayosd.service
-# satty won't create its output dir, and git can't carry an empty one
+# drkonqi is plasma-meta's crash reporter. Its launcher socket is WantedBy=sockets.target — live in
+# every session, Plasma or not — and outside Plasma the launcher cannot run: each coredump spawns
+# one, it aborts, and that abort is itself a coredump (3 became 16, 2026-08-27) plus an "N failed
+# units" toast. Mask the socket. Cost: no crash dialogs in the KDE lifeboat; `coredumpctl` remains.
+systemctl --user mask --quiet --now drkonqi-coredump-launcher.socket 2>/dev/null || true
 
-# pass 2: our own watchers. graphical-session for the one that needs the compositor,
-# default.target for the two that must also work in a plain TTY login.
-systemctl --user enable $_now monitor-watch.service power-profile-watch.service \
-  bt-audio-switch.service
-# --now for TIMERS only: timers.target activates once per `systemd --user` start and that
-# manager outlives logouts, so a plain enable waits for a reboot. Services are fine without
-# it — graphical-session.target restarts every login. --now on those would break a TTY apply.
-systemctl --user enable --now battery-notify.timer
-
-# theming: the service runs once per session (a night login must not wait for the next tick),
-# the timer reconciles every 15 minutes
+# ⚠ CLOCK-scoped, so these stay units — they must fire with no compositor at all.
+# --now for TIMERS specifically: timers.target activates once per `systemd --user` start, and
+# that manager outlives logouts, so a plain enable waits for a reboot while reporting success.
+systemctl --user enable --now sun.timer battery-notify.timer
+# the service behind sun.timer runs once per session too (a night login must not wait 15 min)
 systemctl --user enable sun.service
-systemctl --user enable --now sun.timer
 
+# satty won't create its own output dir; git can't carry an empty one
 mkdir -p ~/Pictures/screenshots

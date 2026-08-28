@@ -32,17 +32,17 @@
     "format": "{icon} {volume}%", "format-muted": " muted",
     "format-icons": ["", "", ""],
     "on-click": "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle",
-    "on-click-right": "uwsm app -- pwvucontrol"
+    "on-click-right": "pwvucontrol"
   },
   "network": {
     "format-wifi": "  {signalStrength}%", "format-ethernet": "󰈀",
     "format-disconnected": "󰤭", "tooltip-format": "{essid} · {ipaddr}",
     // PASS 1 value — pass 2 swaps this to "menu-wifi" once the script exists
-    "on-click": "uwsm app -- nm-connection-editor"
+    "on-click": "nm-connection-editor"
   },
   "bluetooth": {
     "format": "", "format-off": "", "format-connected": " {num_connections}",
-    "on-click": "uwsm app -- blueman-manager"
+    "on-click": "blueman-manager"
   },
   "battery": {
     "states": { "warning": 25, "critical": 10 },

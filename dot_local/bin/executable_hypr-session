@@ -1,0 +1,17 @@
+#!/bin/sh
+# Hyprland session entry point. greetd runs this, not Hyprland.
+
+# ⚠ uwsm exported these five and neither env file sets them. XDG_CURRENT_DESKTOP is the
+# load-bearing one — xdg-desktop-portal routes on it, so without it screenshare, file
+# pickers and "open with" all silently pick the wrong backend or none.
+export XDG_CURRENT_DESKTOP=Hyprland
+export XDG_SESSION_DESKTOP=Hyprland
+export XDG_SESSION_TYPE=wayland
+export XDG_MENU_PREFIX=hyprland-
+export XDG_BACKEND=wayland
+
+# toolkit vars, then compositor-specific (cursor names/sizes + the AQ_DRM_DEVICES probe)
+[ -r "$HOME/.config/hypr/env" ]          && . "$HOME/.config/hypr/env"
+[ -r "$HOME/.config/hypr/env-hyprland" ] && . "$HOME/.config/hypr/env-hyprland"
+
+exec Hyprland "$@"

@@ -11,7 +11,7 @@ configuration {
   /* run mode only — rofi 2.0.0 has no drun launch hook, so drun-launched apps
      land in the compositor's unit. Wrapping rofi itself would be worse: everything
      it spawns would inherit rofi's cgroup and keep that scope alive. */
-  run-command: "uwsm app -- {cmd}";
+  run-command: "{cmd}";
   show-icons: true;
 }
 @theme "~/.config/rofi/theme.rasi"
