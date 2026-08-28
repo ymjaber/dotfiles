@@ -49,6 +49,10 @@ EOF
   # Waybar is GTK3 → @define-color / @name
   printf '@define-color bg #%s;\n@define-color fg #%s;\n@define-color accent #%s;\n@define-color warn #%s;\n@define-color err #%s;\n' \
     "$c_bg" "$c_fg" "$c_accent" "$c_warn" "$c_err" | w ~/.config/waybar/colors.css
+  # AGS is GTK4 → :root / var(), loaded at runtime by app.ts; `ags request recolor` re-applies it.
+  # --bg-alpha carries ALPHA baked in, as swaync's --cc-bg does (var() inside rgba() is not GTK CSS).
+  printf ':root {\n  --bg: #%s;\n  --bg-alpha: rgba(%s, %s);\n  --fg: #%s;\n  --accent: #%s;\n  --warn: #%s;\n  --err: #%s;\n}\n' \
+    "$c_bg" "$(rgb "$c_bg")" "$ALPHA" "$c_fg" "$c_accent" "$c_warn" "$c_err" | w ~/.config/ags/style/colors.css
   # ⚠ swaync is GTK4 → :root / var(), and its OWN names. Teeing the Waybar file into both
   # matched zero of swaync's variables: it parsed cleanly and recoloured nothing.
   w ~/.config/swaync/colors.css <<EOF
@@ -114,6 +118,7 @@ reload() {
   hyprctl reload -q 2>/dev/null || true
   pkill -SIGUSR2 -x -u "$(id -u)" waybar 2>/dev/null || true   # waybar is a plain process now; SIGUSR2 is what the unit's ExecReload sent
   swaync-client -rs 2>/dev/null || true
+  ags request recolor >/dev/null 2>&1 || true   # no bar running is not an error (widgets.md)
   kitty @ --to unix:@kitty set-colors -a ~/.config/kitty/theme.conf 2>/dev/null || true
   for p in /dev/pts/*; do [[ -w $p ]] && cat ~/.cache/theme-sequences > "$p" 2>/dev/null; done
   return 0      # ⚠ the loop's last test is usually false; without this, reload() fails under set -e

@@ -1,0 +1,11 @@
+// main.scss — layout and shape; colours come from colors.css at runtime (see app.ts)
+* { font-family: "JetBrainsMonoNL Nerd Font", sans-serif; font-size: 13px; }
+.bar {
+  background: var(--bg-alpha);   // the engine's ALPHA baked in, exactly as swaync's --cc-bg (var() inside rgba() is not GTK CSS)
+  color: var(--fg);
+  padding: 2px 10px;
+  label { padding: 0 6px; }
+}
+.on     { color: var(--accent); }
+.warn   { color: var(--warn); }
+.err    { color: var(--err); }

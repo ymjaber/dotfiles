@@ -1,0 +1,17 @@
+#!/bin/bash
+# astal state: {{ output "sh" "-c" "pacman -Q | grep -E '^(aylurs-gtk-shell|libastal)' | tr '\n' ' '; true" }}
+# ⚠ `pacman -Q <name>` takes exact names, not globs: the first draft's `'libastal*'` keyed the hash
+# on aylurs-gtk-shell alone, so an Astal `paru -Sua --devel` bump regenerated nothing (2026-08-28).
+set -e
+command -v ags >/dev/null || exit 0
+# The two symlinks `ags types -u` would create, done by hand — because -u also rewrites tsconfig.json
+# on every run in Go's re-marshalled byte form (cli/cmd/types.go), dirtying a chezmoi-managed file.
+# Without -u, `types` only generates @girs; tsconfig.json and env.d.ts stay chezmoi's alone.
+mkdir -p ~/.config/ags/node_modules
+ln -sfn /usr/share/ags/js ~/.config/ags/node_modules/ags
+ln -sfn /usr/share/ags/js/node_modules/gnim ~/.config/ags/node_modules/gnim
+# @girs for every installed GIR (no pattern = '*', exactly what `ags init` runs).
+# ⚠ `types` accepts at most ONE pattern (cli/cmd/types.go: cobra.MaximumNArgs(1) — a list is a
+# usage error, exit 1) and `--ignore` is parsed but never forwarded to ts-for-gir in 3.1.2, so
+# neither appears here. The generate step needs the network the first time (npx caches @ts-for-gir/cli).
+ags types -d ~/.config/ags

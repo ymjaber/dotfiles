@@ -124,7 +124,9 @@ sudo pacman -S --needed --noconfirm \
   tree-sitter-cli \
   vscode-json-languageserver \
   marksman \
-  shellcheck
+  shellcheck \
+  typescript \
+  dart-sass
 
 # from the AUR (unreviewed upstream — keep this list short and deliberate)
 paru -S --needed --noconfirm \
@@ -139,4 +141,17 @@ paru -S --needed --noconfirm \
   firefox-tridactyl-native \
   netcoredbg \
   jetbrains-toolbox \
-  visual-studio-code-bin
+  visual-studio-code-bin \
+  libastal-git \
+  libastal-4-git \
+  libastal-io-git \
+  libastal-hyprland-git \
+  libastal-battery-git \
+  libastal-wireplumber-git \
+  libastal-powerprofiles-git \
+  libastal-mpris-git \
+  libastal-network-git \
+  libastal-bluetooth-git \
+  libastal-tray-git \
+  libastal-cava-git \
+  aylurs-gtk-shell

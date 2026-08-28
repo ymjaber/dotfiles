@@ -143,5 +143,11 @@ fi
 grep -q '^background_opacity' ~/.config/kitty/theme.conf 2>/dev/null \
   && ok "kitty opacity" || bad "kitty fragment has no background_opacity — matugen template drift?"
 
+# widgets — the AGS platform and our modules
+command -v ags >/dev/null && ok "ags $(ags --version 2>/dev/null | awk '{print $3}')" || bad "ags missing"
+[[ -d ~/.config/ags/@girs ]] && ok "ags types" || bad "ags types absent — chezmoi apply (run_onchange_after_ags-types)"
+_t=$(cd ~/.config/ags 2>/dev/null && tsc --noEmit 2>&1 | grep -vE '^(@girs/|\.\./|\s)')
+[[ -z $_t ]] && ok "ags modules typecheck" || bad "ags typecheck: $(echo "$_t" | head -1 | cut -c1-90)"
+
 exit ${fail:-0}
 

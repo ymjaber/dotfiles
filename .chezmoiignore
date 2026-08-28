@@ -3,3 +3,5 @@ bootstrap.sh
 .config/yazi/plugins
 .config/mozilla/*
 .mozilla/*
+.config/ags/@girs
+.config/ags/node_modules
