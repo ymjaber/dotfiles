@@ -1,6 +1,9 @@
 import app from "ags/gtk4/app"
 import style from "./style/main.scss"   // ⚠ compiled by `sass` at bundle time — package dart-sass (roster above)
 import Bar from "./widget/Bar"
+import ControlCenter from "./widget/ControlCenter"
+import OSD from "./widget/OSD"
+import Dashboard from "./widget/Dashboard"
 import GLib from "gi://GLib"
 
 // ⚠ Colours are NOT compiled in. main.scss only uses var(--bg) & co.; the values live in
@@ -20,6 +23,9 @@ app.start({
     // ⚠ Bar() is one window on the compositor-chosen output. Per-output bars are the template's
     // `app.get_monitors().map(Bar)` — only once Bar takes `gdkmonitor: Gdk.Monitor` and pins it.
     Bar()
+    ControlCenter()   // hidden until `ags toggle control-center` (SUPER+SHIFT+C at the flip)
+    OSD()             // no bind: shows itself on volume/brightness changes
+    Dashboard()       // hidden until `ags toggle dashboard` (SUPER+SHIFT+D at the flip)
   },
   // `ags request recolor` from theme's reload(); anything else answers so the CLI never hangs
   requestHandler(argv, res) {

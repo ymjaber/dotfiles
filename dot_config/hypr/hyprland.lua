@@ -32,6 +32,9 @@ bind("SUPER + D",      hl.dsp.exec_cmd("rofi -show drun"),       { description =
 bind("SUPER + Q",      hl.dsp.window.close(),                        { description = "close window" })
 bind("SUPER + E",      hl.dsp.exec_cmd("kitty -e yazi"), { description = "files" })
 bind("SUPER + B",      hl.dsp.exec_cmd("firefox"),   { description = "browser" })
+-- the AGS panels (widgets.md): toggled by name — application={app} on the window is what makes the name resolve
+bind("SUPER + SHIFT + C", hl.dsp.exec_cmd("ags toggle control-center"), { description = "control centre" })
+bind("SUPER + SHIFT + D", hl.dsp.exec_cmd("ags toggle dashboard"),      { description = "dashboard" })
 bind("SUPER + SHIFT + S", hl.dsp.exec_cmd("grimblast --freeze save area - | satty -f -"),
                                                                      { description = "region shot → annotate" })
 bind("SUPER + P",      hl.dsp.exec_cmd("hyprpicker -a"),             { description = "color picker" })
@@ -111,7 +114,7 @@ wr({ name = "scratch", float = true, size = "70% 55%", center = true,
      match = { class = "^scratch-.*$" } })
 -- ⚠ layer_rule has NO `rule` and NO top-level `namespace`: effects are named keys, and the
 -- namespace is a MATCH key. The Lua field is ignore_alpha, not the .conf-era "ignorealpha 0.5".
-for _, ns in ipairs({ "rofi", "bar", "control-center", "osd", "cheatsheet",
+for _, ns in ipairs({ "rofi", "bar", "control-center", "osd", "dashboard", "cheatsheet",
                       "swaync-control-center", "swaync-notification-window" }) do
   hl.layer_rule({ name = "blur-" .. ns, match = { namespace = "^" .. ns .. "$" },
                   blur = true, ignore_alpha = 0.5 })
@@ -172,7 +175,8 @@ hl.on("hyprland.start", function()
 
   -- everything below ships no D-Bus activation, so a plain exec has no one to race
   for _, c in ipairs({
-    "waybar", "hypridle", "hyprsunset", "swayosd-server",
+    -- the bar is AGS since 2026-08-29 (widgets.md); waybar is retired
+    "ags run", "hypridle", "hyprsunset", "swayosd-server",
     "wl-paste --type text  --watch cliphist store",
     "wl-paste --type image --watch cliphist store",
     "monitor-watch", "power-profile-watch", "bt-audio-switch",
@@ -197,8 +201,8 @@ end)
 -- ⚠ pkill/pgrep -x compare against comm, which is 15 characters — power-profile-watch is
 -- "power-profile-w" there and never matches. The bash watchers are matched on their path with -f.
 hl.on("hyprland.shutdown", function()
-  hl.exec_cmd("systemctl --user stop swaync.service hyprpolkitagent.service blueman-applet.service xdg-desktop-portal-hyprland.service; "
-    .. "pkill -x -u \"$(id -u)\" 'waybar|hypridle|hyprsunset|swayosd-server|awww-daemon|nm-applet|wl-paste'; "
+  hl.exec_cmd("ags quit; systemctl --user stop swaync.service hyprpolkitagent.service blueman-applet.service xdg-desktop-portal-hyprland.service; "
+    .. "pkill -x -u \"$(id -u)\" 'hypridle|hyprsunset|swayosd-server|awww-daemon|nm-applet|wl-paste'; "
     .. "pkill -f -u \"$(id -u)\" -- 'bin/(monitor-watch|power-profile-watch|bt-audio-switch|limine-snapper-notify)$|jetbrains-toolbox'")
 end)
 

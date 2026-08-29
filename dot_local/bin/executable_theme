@@ -5,7 +5,7 @@ set -euo pipefail
 dir=~/.config/themes; cur=$dir/.current; mode=$dir/.mode; wall=$dir/.wallpaper
 # every render target's PARENT, created up front: `cat >` into a missing directory fails, and
 # under set -e that aborts mid-render leaving a half-themed desktop and a stale .current
-mkdir -p "$dir" ~/.config/{hypr,kitty,waybar,swaync,rofi,yazi} \
+mkdir -p "$dir" ~/.config/{hypr,kitty,swaync,rofi,yazi,ags/style} \
          ~/.config/zellij/themes ~/.config/btop/themes ~/.config/qt6ct/colors ~/.cache
 [[ -f $mode ]] || echo dark > "$mode"
 exec 9>"$dir/.lock"; flock 9
@@ -46,9 +46,6 @@ EOF
   printf 'foreground #%s\nbackground #%s\ncursor #%s\nbackground_opacity %s\n' \
     "$c_fg" "$c_bg" "$c_accent" "$ALPHA" \
     | w ~/.config/kitty/theme.conf
-  # Waybar is GTK3 → @define-color / @name
-  printf '@define-color bg #%s;\n@define-color fg #%s;\n@define-color accent #%s;\n@define-color warn #%s;\n@define-color err #%s;\n' \
-    "$c_bg" "$c_fg" "$c_accent" "$c_warn" "$c_err" | w ~/.config/waybar/colors.css
   # AGS is GTK4 → :root / var(), loaded at runtime by app.ts; `ags request recolor` re-applies it.
   # --bg-alpha carries ALPHA baked in, as swaync's --cc-bg does (var() inside rgba() is not GTK CSS).
   printf ':root {\n  --bg: #%s;\n  --bg-alpha: rgba(%s, %s);\n  --fg: #%s;\n  --accent: #%s;\n  --warn: #%s;\n  --err: #%s;\n}\n' \
@@ -116,7 +113,6 @@ EOF
 
 reload() {
   hyprctl reload -q 2>/dev/null || true
-  pkill -SIGUSR2 -x -u "$(id -u)" waybar 2>/dev/null || true   # waybar is a plain process now; SIGUSR2 is what the unit's ExecReload sent
   swaync-client -rs 2>/dev/null || true
   ags request recolor >/dev/null 2>&1 || true   # no bar running is not an error (widgets.md)
   kitty @ --to unix:@kitty set-colors -a ~/.config/kitty/theme.conf 2>/dev/null || true

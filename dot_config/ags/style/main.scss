@@ -4,7 +4,25 @@
   background: var(--bg-alpha);   // the engine's ALPHA baked in, exactly as swaync's --cc-bg (var() inside rgba() is not GTK CSS)
   color: var(--fg);
   padding: 2px 10px;
-  label { padding: 0 6px; }
+  // waybar's look, one for one (its style.css): pill on the active workspace, quiet everything else
+  button { min-height: 0; padding: 0 8px; background: transparent; color: var(--fg); border-radius: 6px; }
+  .workspaces button.active { color: var(--bg); background: var(--accent); }
+  .workspaces button.urgent { color: var(--bg); background: var(--err); }
+  .submap { color: var(--warn); }
+  .title, .module { padding: 0 6px; }
+  .tray-item { padding: 0 4px; }
+  .notif.on { color: var(--accent); }
+  .notif.dnd { color: var(--warn); }
+  .on { color: var(--accent); }
+}
+// panels — one class each, toggled windows: control-center, osd, dashboard
+.cc, .osd, .dashboard {
+  background: var(--bg-alpha);
+  color: var(--fg);
+  padding: 12px;
+  border-radius: 12px;
+  min-width: 320px;
+  button { padding: 6px 10px; border-radius: 8px; }
 }
 .on     { color: var(--accent); }
 .warn   { color: var(--warn); }

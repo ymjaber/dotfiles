@@ -1,0 +1,15 @@
+#!/bin/bash
+# sysmon ← dot_local/bin/executable_sysmon --json   — cpu/mem/temp/net in one line (poll every 2s)
+read -r _ a b c d _ < /proc/stat; idle=$d; tot=$((a+b+c+d))
+# ⚠ redirections apply left to right: `2>/dev/null` must precede `<` or the first run (no cache yet) prints
+# "No such file" to stderr before it is silenced.
+p=~/.cache/sysmon; read -r pi pt pr px pt0 2>/dev/null < "$p" || { pi=0 pt=0 pr=0 px=0 pt0=0; }
+# ⚠ the ternaries are parenthesized: inside awk's printf an unparenthesized `>` is output redirection (syntax error)
+cpu=$(awk "BEGIN{x=$tot-$pt; printf \"%.2f\", (x>0?1-($idle-$pi)/x:0)}")
+mem=$(awk '/MemTotal/{t=$2}/MemAvailable/{a=$2}END{printf "%.2f",1-a/t}' /proc/meminfo)
+read -r rx tx < <(awk '/^ *(en|wl|eth)/{r+=$2;t+=$10}END{print r+0,t+0}' /proc/net/dev)
+now=$(date +%s%3N); dt=$(awk "BEGIN{print ($now-$pt0)/1000}")
+down=$(awk "BEGIN{printf \"%.0f\", ($dt>0?($rx-$pr)/$dt:0)}"); up=$(awk "BEGIN{printf \"%.0f\", ($dt>0?($tx-$px)/$dt:0)}")
+echo "$idle $tot $rx $tx $now" > "$p"
+temp=0; for z in /sys/class/hwmon/hwmon*/temp1_input; do [[ -f $z ]] && { read -r temp < "$z"; break; }; done
+printf '{"cpu":%s,"mem":%s,"temp":%s,"down":%s,"up":%s}\n' "$cpu" "$mem" "$((temp/1000))" "$down" "$up"

@@ -26,7 +26,7 @@ _h=$(ls -1d ~/.config/yazi/plugins/*.yazi 2>/dev/null | wc -l)
 # desktop — the things `chezmoi apply` cannot put back, and the things that fail SILENTLY
 _d=
 if pgrep -x -u "$UID" Hyprland >/dev/null 2>&1; then
-  for _n in waybar swaync hypridle hyprsunset hyprpolkitagent swayosd-server awww-daemon \
+  for _n in swaync hypridle hyprsunset hyprpolkitagent swayosd-server awww-daemon \
             nm-applet blueman-applet; do
     pgrep -x -u "$UID" "$_n" >/dev/null 2>&1 || _d="$_d $_n"
   done
@@ -148,6 +148,10 @@ command -v ags >/dev/null && ok "ags $(ags --version 2>/dev/null | awk '{print $
 [[ -d ~/.config/ags/@girs ]] && ok "ags types" || bad "ags types absent — chezmoi apply (run_onchange_after_ags-types)"
 _t=$(cd ~/.config/ags 2>/dev/null && tsc --noEmit 2>&1 | grep -vE '^(@girs/|\.\./|\s)')
 [[ -z $_t ]] && ok "ags modules typecheck" || bad "ags typecheck: $(echo "$_t" | head -1 | cut -c1-90)"
+# the bar is the daily bar since 2026-08-29 — no compositor means nothing should run (same rule as autostart)
+if pgrep -x -u "$UID" Hyprland >/dev/null 2>&1; then
+  ags list 2>/dev/null | grep -qx ags && ok "ags bar running" || bad "ags bar not running — 'ags run' now; hyprland.lua § autostart starts it at login"
+fi
 
 exit ${fail:-0}
 
