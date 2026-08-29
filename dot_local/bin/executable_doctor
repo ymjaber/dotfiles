@@ -87,8 +87,9 @@ _t=$(cat ~/.config/themes/.current 2>/dev/null || echo none)
 
 # every seam actually points at the fragment the CLI writes
 _s=0
-grep -q '@import "colors.css"' ~/.config/waybar/style.css 2>/dev/null || _s=$((_s+1))
 grep -q '@import "colors.css"' ~/.config/swaync/style.css 2>/dev/null || _s=$((_s+1))
+# the AGS bar's seam is a runtime apply_css, not an @import (widgets.md § style/)
+grep -q 'apply_css(COLORS)' ~/.config/ags/app.ts 2>/dev/null || _s=$((_s+1))
 grep -q '@theme' ~/.config/rofi/config.rasi 2>/dev/null || _s=$((_s+1))
 grep -qE '^\s*theme "theme"' ~/.config/zellij/config.kdl 2>/dev/null || _s=$((_s+1))
 grep -qE '^\s*color_theme\s*=\s*"?theme' ~/.config/btop/btop.conf 2>/dev/null || _s=$((_s+1))
