@@ -4,6 +4,11 @@ ok(){ printf '\e[32m✓\e[0m %s\n' "$1"; }; bad(){ printf '\e[31m✗\e[0m %s\n' 
 src=$(chezmoi source-path)
 
 command -v paru >/dev/null && ok paru || bad paru
+# setup/03 uncomments RemoveMake in /etc/paru.conf so build-only deps leave after every AUR build.
+# /etc is nobody's chezmoi target and a skipped setup line is invisible: eleven compilers and
+# build tools sat as orphans for two weeks (found 2026-08-29). Both silent, both survive an apply.
+grep -q '^RemoveMake' /etc/paru.conf 2>/dev/null && ok "paru RemoveMake" || bad "paru RemoveMake is commented out — setup/03 § paru: sudo sed -i 's/^#RemoveMake/RemoveMake/' /etc/paru.conf"
+_o=$(pacman -Qdtq 2>/dev/null | wc -l); (( _o == 0 )) && ok "no orphans" || bad "$_o orphaned packages (pacman -Qdt lists them) — sudo pacman -Rns \$(pacman -Qdtq)"
 chezmoi verify &>/dev/null && ok chezmoi || bad "chezmoi drift (chezmoi diff)"
 [[ $(getent passwd "$USER" | cut -d: -f7) == */zsh ]] && ok "login shell" || bad "login shell not zsh"
 
