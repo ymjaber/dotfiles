@@ -83,7 +83,7 @@ case "${1:-}" in
                      "Night-light" "$([[ $t == off ]] && echo off || echo "${t}K")" 2>/dev/null
               else echo "sun: temp must be off, toggle, or 1000-6500 (K)" >&2; exit 2; fi
             else cat "$T"; fi ;;
-  # ⚠ --status must never touch the network: waybar runs it on an interval.
+  # ⚠ --status must never touch the network: a bar or pill may poll it on an interval.
   --status) pol=$(cat "$P")
             printf '{"text":"%s","class":"%s"}\n' \
               "$([[ $pol == auto ]] && (times >/dev/null 2>&1 && phase || echo '?') || echo "$pol")" "$pol" ;;

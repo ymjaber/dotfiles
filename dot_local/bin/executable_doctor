@@ -46,7 +46,7 @@ fi
 # 2026-08-27, and deleting the enable step does not disable anything. Left enabled, each daemon
 # starts twice under Hyprland (target + hyprland.start) and leaks into the KDE lifeboat.
 _e=
-for _u in waybar swaync hypridle hyprsunset cliphist hyprpolkitagent awww-daemon \
+for _u in swaync hypridle hyprsunset cliphist hyprpolkitagent awww-daemon \
           cliphist-image swayosd monitor-watch power-profile-watch bt-audio-switch; do
   systemctl --user is-enabled -q "$_u.service" 2>/dev/null && _e="$_e $_u"
 done
@@ -109,13 +109,19 @@ grep -qE '^\s*lock_cmd.*\block$' ~/.config/hypr/hypridle.conf 2>/dev/null \
 grep -qx 'gtk-application-prefer-dark-theme=1' ~/.config/gtk-3.0/settings.ini 2>/dev/null \
   && ok "GTK3 dark" || bad "GTK3 apps render light — see theming.md § GTK/Qt/cursor 1b"
 
-# hybrid: the dGPU must be ASLEEP when nothing asked for it. nvidia-smi showing a low-watt P8
-# is NOT this — P8 is an awake idle state, D3cold is off. Reading sysfs does not wake it.
+# hybrid: the dGPU must be ASLEEP when nothing asked for it. `nvidia-smi` showing a low-watt
+# P8 is NOT this — P8 is an awake idle state and D3cold is off; the card sat at D0/4.57 W for
+# weeks while the P8 reading looked reassuring. Reading these sysfs files does not wake it.
+# Silent on machines with no nvidia device, so one doctor serves every profile.
 _g=$(ls -d /sys/bus/pci/drivers/nvidia/0000:* 2>/dev/null | head -1)
 if [[ $_g && -r $_g/power/runtime_status ]]; then
-  _st=$(cat "$_g/power/runtime_status")
+  # any GL client enumerating both GPUs wakes it for a few seconds (a browser decoding video,
+  # a fresh terminal) — one instant sample cried wolf on 2026-08-29. Sample for ten seconds.
+  for _ in 1 2 3 4 5 6 7 8 9 10; do
+    _st=$(cat "$_g/power/runtime_status"); [[ $_st == suspended ]] && break; sleep 1
+  done
   [[ $_st == suspended ]] && ok "dGPU asleep" \
-    || bad "dGPU is '$_st', want suspended — expected within a minute of login (every GL client enumerates both GPUs) or right after CUDA or a prime-run app; otherwise something holds it awake (desktop.md § env.tmpl)"
+    || bad "dGPU '$_st' for 10 s, want suspended — expected right after CUDA or a prime-run app; otherwise something holds it awake (desktop.md § env.tmpl)"
 fi
 
 # `set which-key easymotion` in ~/.ideavimrc is a SILENT no-op without the plugins, and

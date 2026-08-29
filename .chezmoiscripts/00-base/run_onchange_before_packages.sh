@@ -61,7 +61,6 @@ sudo pacman -S --needed --noconfirm \
   hyprshutdown \
   greetd \
   greetd-tuigreet \
-  waybar \
   rofi \
   swaync \
   cliphist \
