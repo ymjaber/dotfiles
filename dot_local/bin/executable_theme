@@ -5,7 +5,7 @@ set -euo pipefail
 dir=~/.config/themes; cur=$dir/.current; mode=$dir/.mode; wall=$dir/.wallpaper
 # every render target's PARENT, created up front: `cat >` into a missing directory fails, and
 # under set -e that aborts mid-render leaving a half-themed desktop and a stale .current
-mkdir -p "$dir" ~/.config/{hypr,kitty,swaync,rofi,yazi,ags/style} \
+mkdir -p "$dir" ~/.config/{hypr,kitty,swaync,rofi,yazi,ags/style,nvim/lua} \
          ~/.config/zellij/themes ~/.config/btop/themes ~/.config/qt6ct/colors ~/.cache
 [[ -f $mode ]] || echo dark > "$mode"
 exec 9>"$dir/.lock"; flock 9
@@ -46,6 +46,12 @@ EOF
   printf 'foreground #%s\nbackground #%s\ncursor #%s\nbackground_opacity %s\n' \
     "$c_fg" "$c_bg" "$c_accent" "$ALPHA" \
     | w ~/.config/kitty/theme.conf
+  # nvim reads the palette as a Lua module (config/colorscheme.lua feeds it to catppuccin —
+  # editors.md § colorscheme). Same nine slots, `#`-prefixed like every other Lua consumer.
+  w ~/.config/nvim/lua/theme.lua <<EOF
+return { bg = "#${c_bg}", bg_alt = "#${c_bg_alt}", fg = "#${c_fg}", accent = "#${c_accent}",
+         ok = "#${c_ok}", warn = "#${c_warn}", err = "#${c_err}", muted = "#${c_muted}", border = "#${c_border}" }
+EOF
   # AGS is GTK4 → :root / var(), loaded at runtime by app.ts; `ags request recolor` re-applies it.
   # --bg-alpha carries ALPHA baked in, as swaync's --cc-bg does (var() inside rgba() is not GTK CSS).
   printf ':root {\n  --bg: #%s;\n  --bg-alpha: rgba(%s, %s);\n  --fg: #%s;\n  --accent: #%s;\n  --warn: #%s;\n  --err: #%s;\n}\n' \
@@ -116,6 +122,12 @@ reload() {
   swaync-client -rs 2>/dev/null || true
   ags request recolor >/dev/null 2>&1 || true   # no bar running is not an error (widgets.md)
   kitty @ --to unix:@kitty set-colors -a ~/.config/kitty/theme.conf 2>/dev/null || true
+  # every running nvim: each instance listens on $XDG_RUNTIME_DIR/nvim.<pid>.0 (v:servername,
+  # verified 2026-08-29). --remote-expr evaluates and returns; --remote-send would type into
+  # whatever mode the editor is in. `timeout` because a blocked instance (a hung LSP) never answers.
+  for s in "${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"/nvim.*.0; do
+    [[ -S $s ]] && timeout 2 nvim --server "$s" --remote-expr "v:lua.require('config.colorscheme').apply()" >/dev/null 2>&1
+  done
   for p in /dev/pts/*; do [[ -w $p ]] && cat ~/.cache/theme-sequences > "$p" 2>/dev/null; done
   return 0      # ⚠ the loop's last test is usually false; without this, reload() fails under set -e
 }

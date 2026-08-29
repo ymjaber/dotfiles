@@ -100,6 +100,10 @@ grep -q 'apply_css(COLORS)' ~/.config/ags/app.ts 2>/dev/null || _s=$((_s+1))
 grep -q '@theme' ~/.config/rofi/config.rasi 2>/dev/null || _s=$((_s+1))
 grep -qE '^\s*theme "theme"' ~/.config/zellij/config.kdl 2>/dev/null || _s=$((_s+1))
 grep -qE '^\s*color_theme\s*=\s*"?theme' ~/.config/btop/btop.conf 2>/dev/null || _s=$((_s+1))
+# nvim's seam is a pcall(require, "theme") — the first version of this line grepped for the plain
+# require("theme") form, never ran against the real file, and reported a missing seam on a working
+# editor (2026-08-29). Match either spelling.
+grep -qE 'require(\(|, )"theme"' ~/.config/nvim/lua/config/colorscheme.lua 2>/dev/null || _s=$((_s+1))
 (( _s == 0 )) && ok "theme seams" || bad "$_s theme fragment(s) written but never imported"
 
 # the cursor NAME, not just its size — Bibata was installed and selected nowhere for weeks

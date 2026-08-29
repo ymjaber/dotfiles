@@ -5,6 +5,9 @@ output_path = "~/.config/hypr/theme.lua"
 [templates.kitty]
 input_path  = "~/.config/matugen/templates/kitty.conf"
 output_path = "~/.config/kitty/theme.conf"
+[templates.nvim]
+input_path  = "~/.config/matugen/templates/nvim.lua"
+output_path = "~/.config/nvim/lua/theme.lua"
 [templates.swaync]
 input_path  = "~/.config/matugen/templates/swaync.css"
 output_path = "~/.config/swaync/colors.css"
