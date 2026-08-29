@@ -1,0 +1,21 @@
+#!/bin/bash
+# prayer next | today | --json | qibla — every surface calls this, nothing parses the cache directly
+C=~/.cache/prayers/$(date +%F).json; [[ -f $C ]] || C=~/.cache/prayers/$(date -d yesterday +%F).json
+[[ -f $C ]] || exit 0
+next() { jq -r --arg now "$(date +%H:%M)" '
+  .data.timings | to_entries
+  | map(select(.key as $k | ["Fajr","Dhuhr","Asr","Maghrib","Isha"] | index($k)))
+  | map(select(.value > $now)) | first // empty | "\(.key) \(.value)"' "$C"; }
+case "${1:-next}" in
+  --json) jq '{timings: .data.timings, hijri: .data.date.hijri}' "$C" ;;
+  today)  jq -r '.data.timings | "الفجر \(.Fajr)\nالظهر \(.Dhuhr)\nالعصر \(.Asr)\nالمغرب \(.Maghrib)\nالعشاء \(.Isha)\nالإمساك \(.Imsak)"' "$C"
+          jq -r '.data.date.hijri | "\(.day) \(.month.ar) \(.year)"' "$C" ;;
+  qibla)  # great-circle bearing to the Kaaba. ⚠ NOT from the cache's meta: aladhan's timingsByCity answered
+          # Ramallah/PS with lat 8.8888888 / lon 7.7777777 — a placeholder — while its TIMES were right (2026-08-29).
+          # `sun coords` (theming.md) is the machine's real location and the weather widget already trusts it.
+          sun coords 2>/dev/null | tr ',' ' ' | python3 -c '
+import math, sys; lat, lon = map(float, sys.stdin.read().split()); kl, kn = 21.4225, 39.8262
+a, b, d = map(math.radians, (lat, kl, kn - lon))
+print("%.0f" % (math.degrees(math.atan2(math.sin(d), math.cos(a)*math.tan(b) - math.sin(a)*math.cos(d))) % 360))' ;;
+  next)   n=$(next); [[ -n $n ]] && echo "$n" || echo "Fajr $(jq -r .data.timings.Fajr "$C") (غدًا)" ;;
+esac

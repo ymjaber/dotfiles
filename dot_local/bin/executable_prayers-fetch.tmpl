@@ -1,0 +1,15 @@
+#!/bin/bash
+# prayers-fetch — daily 00:05 + 2 min after boot. Writes ~/.cache/prayers/YYYY-MM-DD.json.
+# Template-rendered from the interview; an empty city means this machine skipped deen.
+CITY="{{ .city }}" COUNTRY="{{ .country }}" METHOD="{{ .method }}"
+[[ -z $CITY ]] && exit 0
+mkdir -p ~/.cache/prayers
+# ⚠ the DATED path. The undated /v1/timingsByCity answers HTTP 302 (redirect to the dated form,
+# measured 2026-08-29), and `curl -f` without -L treats that as failure — the draft's fetcher
+# would have written nothing, every day, silently. Country is the ISO code.
+d=$(date +%F); u="https://api.aladhan.com/v1/timingsByCity/$(date +%d-%m-%Y)?city=$CITY&country=$COUNTRY&method=$METHOD"
+curl -fsS -A "arch-install/1.0" --max-time 20 "$u" -o ~/.cache/prayers/$d.json.tmp \
+  && jq -e '.code == 200 and (.data.timings.Fajr | length) > 0' ~/.cache/prayers/$d.json.tmp >/dev/null \
+  && mv ~/.cache/prayers/$d.json.tmp ~/.cache/prayers/$d.json
+rm -f ~/.cache/prayers/$d.json.tmp
+find ~/.cache/prayers -name '*.json' -mtime +7 -delete   # keep a week: the CLI's fallback is yesterday

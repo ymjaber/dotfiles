@@ -17,6 +17,7 @@ import Privacy from "./Privacy"
 import Updates from "./Updates"
 import Recorder from "./Recorder"
 import Cava from "./Cava"
+import Prayer from "./Prayer"   // 50-deen overlay: next prayer pill + popover
 // ⚠ Every file that anchors a <window> needs these two lines (imports stay first, the destructure
 // follows them). Without them TOP/LEFT/RIGHT are undefined — the 2026-08-09 draft had no such import.
 const { TOP, LEFT, RIGHT } = Astal.WindowAnchor
@@ -89,6 +90,7 @@ export default function Bar() {
         </box>
         <label $type="center" label={time} />
         <box $type="end" spacing={6}>
+          <Prayer />
           <For each={trayItems} id={i => i.itemId}>
             {item => <menubutton class="tray-item" menuModel={createBinding(item, "menuModel")} tooltipMarkup={createBinding(item, "tooltipMarkup")}
                 $={self => { self.insert_action_group("dbusmenu", item.actionGroup); onCleanup(createBinding(item, "actionGroup").subscribe(() => self.insert_action_group("dbusmenu", item.actionGroup))) }}>

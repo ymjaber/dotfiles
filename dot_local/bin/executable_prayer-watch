@@ -1,0 +1,18 @@
+#!/bin/bash
+# prayer-watch — one loop: sleep to the next prayer, notify (never-DND rule in swaync), play the adhan.
+# Config: ~/.config/prayer/config — PRE=10 (minutes before, 0 = off). Audio: ~/.local/share/prayer/adhan.ogg
+# (owner-provided, never in the repo; absent → notification only).
+PRE=10; [[ -f ~/.config/prayer/config ]] && source ~/.config/prayer/config
+A=~/.local/share/prayer/adhan.ogg
+while :; do
+  line=$(prayer next 2>/dev/null); [[ -z $line ]] && { sleep 600; continue; }
+  name=${line%% *}; at=$(cut -d' ' -f2 <<<"$line")
+  [[ $line == *غدًا* ]] && target=$(date -d "tomorrow $at" +%s) || target=$(date -d "today $at" +%s)
+  now=$(date +%s); wait=$(( target - now ))
+  (( wait <= 0 )) && { sleep 60; continue; }
+  if (( PRE > 0 && wait > PRE * 60 )); then sleep $(( wait - PRE * 60 )); notify-send -a prayer -u normal "$name بعد $PRE دقائق" "$at"; wait=$(( PRE * 60 )); fi
+  sleep "$wait"
+  notify-send -a prayer -u critical "الأذان" "$name $at"
+  [[ -f $A ]] && mpv --no-video --really-quiet "$A" &
+  sleep 90                                                # never re-fire on the same time
+done

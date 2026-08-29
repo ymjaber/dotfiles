@@ -1,0 +1,9 @@
+[Unit]
+Description=Adhan notifier
+After=prayers-fetch.service
+[Service]
+ExecStart=%h/.local/bin/prayer-watch
+Restart=always
+RestartSec=30
+[Install]
+WantedBy=default.target

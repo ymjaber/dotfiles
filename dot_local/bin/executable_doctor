@@ -17,7 +17,9 @@ ssh-add -l &>/dev/null; (( $? != 2 )) && ok ssh-agent || bad "ssh-agent not answ
   ok "pacman hooks" || bad "pacman hooks missing"
 zsh -n "$HOME"/.config/zsh/*.zsh 2>/dev/null && ok "zsh config parses" || bad "zsh config syntax"
 
-[[ -s ~/.cache/ls-colors && -S ${XDG_RUNTIME_DIR}/atuin.sock ]] && ok shell || bad "shell (vivid cache / atuin daemon)"
+# ⚠ atuin 18.20 moved the daemon socket from $XDG_RUNTIME_DIR/atuin.sock to /tmp/atuin-$UID/atuin.sock
+# (found 2026-08-29 after a -Syu: daemon running, doctor red). `ss -xlp | grep atuin` is how to find it next time.
+[[ -s ~/.cache/ls-colors && ( -S ${XDG_RUNTIME_DIR}/atuin.sock || -S /tmp/atuin-$UID/atuin.sock ) ]] && ok shell || bad "shell (vivid cache / atuin daemon)"
 
 _w=$(grep -c '^\[\[plugin.deps\]\]' ~/.config/yazi/package.toml 2>/dev/null)
 _h=$(ls -1d ~/.config/yazi/plugins/*.yazi 2>/dev/null | wc -l)
@@ -153,6 +155,21 @@ _t=$(cd ~/.config/ags 2>/dev/null && tsc --noEmit 2>&1 | grep -vE '^(@girs/|\.\.
 if pgrep -x -u "$UID" Hyprland >/dev/null 2>&1; then
   ags list 2>/dev/null | grep -qx ags && ok "ags bar running" || bad "ags bar not running — 'ags run' now; hyprland.lua § autostart starts it at login"
 fi
+
+# 50-deen — the cache is fresh, the CLI answers, the watcher is alive (only when this machine opted in)
+if [[ -n $(chezmoi data 2>/dev/null | jq -r '.city // empty') ]]; then
+  _c=~/.cache/prayers/$(date +%F).json
+  [[ -f $_c ]] && ok "prayer cache" || bad "prayer cache missing for today — systemctl --user start prayers-fetch"
+  [[ -n $(prayer next 2>/dev/null) ]] && ok "prayer CLI" || bad "prayer CLI silent"
+  systemctl --user is-active -q prayer-watch.service && ok "adhan watcher" || bad "prayer-watch not active"
+fi
+
+# ⚠ after a `-Syu`, a running daemon keeps executing the OLD binary — /proc/<pid>/exe reads "(deleted)".
+# The new client talks to the old server and nothing happens: volume keys went dead after swayosd
+# 0.3.1 → 0.3.2 (2026-08-29). Units do not restart on upgrade either. Name them; restart or re-login.
+_st=$(for _p in $(pgrep -u "$UID" -x "swayosd-server|swaync|hypridle|hyprsunset|awww-daemon|hyprpolkitagent|nm-applet|blueman-applet|gjs|Hyprland"); do
+        [[ $(readlink /proc/$_p/exe 2>/dev/null) == *"(deleted)"* ]] && cat /proc/$_p/comm; done | sort -u | tr "\n" " ")
+[[ -z $_st ]] && ok "daemons run current binaries" || bad "upgraded underneath, still running the old binary:$_st— restart them (Hyprland: re-login)"
 
 exit ${fail:-0}
 

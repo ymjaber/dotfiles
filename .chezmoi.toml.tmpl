@@ -2,7 +2,13 @@
 {{- $role  := promptStringOnce . "role"  "role (work/personal)" -}}
 {{- $gname := promptStringOnce . "gitname"  "git author name" -}}
 {{- $gmail := promptStringOnce . "gitemail" "git author email" -}}
+{{- $city    := promptStringOnce . "city"    "prayer times: city (empty = this machine skips deen)" -}}
+{{- $country := promptStringOnce . "country" "prayer times: country as ISO code (SA, EG, DE …)" -}}
+{{- $method  := promptStringOnce . "method"  "prayer times: aladhan method id (4 Umm al-Qura, 3 MWL, 5 Egyptian, 2 ISNA, 1 Karachi)" -}}
 [data]
+    city    = {{ $city | quote }}
+    country = {{ $country | quote }}
+    method  = {{ $method | quote }}
     gpu      = {{ $gpu   | quote }}
     role     = {{ $role  | quote }}
     gitname  = {{ $gname | quote }}

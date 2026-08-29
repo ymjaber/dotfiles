@@ -126,7 +126,8 @@ sudo pacman -S --needed --noconfirm \
   marksman \
   shellcheck \
   typescript \
-  dart-sass
+  dart-sass \
+  mpv
 
 # from the AUR (unreviewed upstream — keep this list short and deliberate)
 paru -S --needed --noconfirm \
@@ -154,4 +155,6 @@ paru -S --needed --noconfirm \
   libastal-bluetooth-git \
   libastal-tray-git \
   libastal-cava-git \
-  aylurs-gtk-shell
+  aylurs-gtk-shell \
+  python-hijridate \
+  quran-companion

@@ -1,0 +1,8 @@
+[Unit]
+Description=Daily prayer-times fetch
+[Timer]
+OnCalendar=*-*-* 00:05
+OnBootSec=2m
+Persistent=true
+[Install]
+WantedBy=timers.target

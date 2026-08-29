@@ -1,0 +1,9 @@
+[Unit]
+Description=Fetch today's prayer times into the cache
+After=network-online.target
+Wants=network-online.target
+[Service]
+Type=oneshot
+ExecStart=%h/.local/bin/prayers-fetch
+# arm today's dhikr reminders from the fresh cache (§ Hijri · Quran · adhkar)
+ExecStartPost=-%h/.local/bin/adhkar-arm

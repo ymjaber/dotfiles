@@ -1,0 +1,10 @@
+#!/bin/bash
+# adhkar-arm ← dot_local/bin/executable_adhkar-arm — arm today's morning/evening dhikr pings
+C=~/.cache/prayers/$(date +%F).json; [[ -f $C ]] || exit 0
+arm() {  # $1 = HH:MM base, $2 = +minutes, $3 = which adhkar
+  local t; t=$(date -d "$1 today + $2 min" +%H:%M) || return
+  systemd-run --user --on-calendar="*-*-* $t" --timer-property=AccuracySec=1min \
+    notify-send -a adhkar "أذكار $3" "حان وقت أذكار ال$3" 2>/dev/null
+}
+arm "$(jq -r .data.timings.Fajr "$C")" 30 "الصباح"
+arm "$(jq -r .data.timings.Asr  "$C")" 30 "المساء"

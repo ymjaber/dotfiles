@@ -4,6 +4,7 @@
   "control-center-width": 380, "notification-window-width": 380,
   "timeout": 8, "timeout-critical": 0,
   "keyboard-shortcuts": true, "image-visibility": "when-available",
+  "notification-visibility": { "prayer": { "app-name": "prayer", "state": "enabled", "override-urgency": "critical" } },   // 50-deen: the adhan is never suppressed by DND
   "widgets": ["title", "dnd", "notifications"],
   "widget-config": { "title": { "text": "Notifications", "clear-all-button": true } }
 }
